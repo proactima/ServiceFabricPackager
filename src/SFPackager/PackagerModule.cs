@@ -1,5 +1,7 @@
 ﻿using Ninject.Modules;
+using SFPackager.Interfaces;
 using SFPackager.Services;
+using SFPackager.Services.FileStorage;
 
 namespace SFPackager
 {
@@ -8,9 +10,8 @@ namespace SFPackager
         public override void Load()
         {
             Bind<App>().ToSelf();
-            Bind<AzureBlobService>().ToSelf();
+            Bind<IHandleFiles>().To<AzureBlobService>();
             Bind<ServiceFabricApplicationManifestHandler>().ToSelf();
-            Bind<ServiceFabricRemote>().ToSelf().InSingletonScope();
             Bind<ServiceFabricServiceManifestHandler>().ToSelf();
             Bind<ServiceHashCalculator>().ToSelf();
             Bind<SfLocator>().ToSelf();
