@@ -1,0 +1,57 @@
+﻿{
+  "##GLOBAL##": {
+    "Version": {
+      "CommitHash": "orghash",
+      "RollingNumber": 1
+    },
+    "Hash": "",
+    "VersionType": 0,
+    "PackageType": 0,
+    "ParentRef": "",
+    "IncludeInPackage": false
+  },
+  "App": {
+    "Version": {
+      "CommitHash": "orghash",
+      "RollingNumber": 1
+    },
+    "Hash": "",
+    "VersionType": 1,
+    "PackageType": 0,
+    "ParentRef": "",
+    "IncludeInPackage": false
+  },
+  "Service-Code": {
+    "Version": {
+      "CommitHash": "orghash",
+      "RollingNumber": 1
+    },
+    "Hash": "a",
+    "VersionType": 3,
+    "PackageType": 1,
+    "ParentRef": "Service",
+    "IncludeInPackage": false
+  },
+  "Service-Config": {
+    "Version": {
+      "CommitHash": "orghash",
+      "RollingNumber": 1
+    },
+    "Hash": "b",
+    "VersionType": 3,
+    "PackageType": 2,
+    "ParentRef": "Service",
+    "IncludeInPackage": false
+  },
+  "Service": {
+    "Version": {
+      "CommitHash": "orghash",
+      "RollingNumber": 1
+    },
+    "Hash": "",
+    "VersionType": 2,
+    "PackageType": 0,
+    "ParentRef": "App",
+    "IncludeInPackage": false
+  }
+}
