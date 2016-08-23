@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SFPackager.Interfaces;
 using SFPackager.Models;
 
 namespace SFPackager.Services
 {
     public class VersionHandler
     {
-        private readonly AzureBlobService _blobService;
+        private readonly IHandleFiles _blobService;
 
-        public VersionHandler(AzureBlobService blobService)
+        public VersionHandler(IHandleFiles blobService)
         {
             _blobService = blobService;
         }
@@ -19,7 +19,7 @@ namespace SFPackager.Services
         public async Task<GlobalVersion> LoadVersionAsync(VersionNumber version, BaseConfig config)
         {
             var result = await _blobService
-                .ExecuteBlobOperationAsync(BlobOperation.GET, config, version.FileName)
+                .GetFileAsStringAsync(version.FileName, config)
                 .ConfigureAwait(false);
 
             if (!result.IsSuccessful)
@@ -33,7 +33,7 @@ namespace SFPackager.Services
         {
             var payload = JsonConvert.SerializeObject(globalVersionHashMap);
             var result = await _blobService
-                .ExecuteBlobOperationAsync(BlobOperation.GET, config, version.FileName, payload)
+                .SaveFileAsync(version.FileName, payload, config)
                 .ConfigureAwait(false);
         }
 

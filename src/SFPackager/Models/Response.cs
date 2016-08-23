@@ -2,7 +2,7 @@ using System.Net;
 
 namespace SFPackager.Models
 {
-    public class AzureResponse<T>
+    public class Response<T>
     {
         public BlobOperation Operation { get; set; }
         public HttpStatusCode StatusCode { get; set; }

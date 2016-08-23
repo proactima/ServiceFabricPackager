@@ -2,15 +2,17 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SFPackager.Helpers;
+using SFPackager.Interfaces;
 using SFPackager.Models;
 using SFPackager.Services;
+using SFPackager.Services.FileStorage;
 
 namespace SFPackager
 {
     public class App
     {
-        private readonly AzureBlobService _blobService;
-        private readonly ServiceFabricRemote _fabricRemote;
+        private readonly IHandleFiles _blobService;
+        private readonly IHandleClusterConnection _fabricRemote;
         private readonly ServiceHashCalculator _hasher;
         private readonly SfLocator _locator;
         private readonly SfProjectHandler _projectHandler;
@@ -19,11 +21,11 @@ namespace SFPackager
         private readonly Packager _packager;
 
         public App(
-            AzureBlobService blobService,
+            IHandleFiles blobService,
             SfLocator locator,
             SfProjectHandler projectHandler,
             ServiceHashCalculator hasher,
-            ServiceFabricRemote fabricRemote,
+            IHandleClusterConnection fabricRemote,
             VersionHandler versionHandler,
             VersionService versionService,
             Packager packager)
@@ -41,12 +43,11 @@ namespace SFPackager
         public async Task RunAsync(BaseConfig baseConfig)
         {
             var result = await _blobService
-                .ExecuteBlobOperationAsync(BlobOperation.GET, baseConfig, baseConfig.AzureStorageConfigFileName)
+                .GetFileAsStringAsync(baseConfig.AzureStorageConfigFileName, baseConfig)
                 .ConfigureAwait(false);
-
+            
             var packageConfig = JsonConvert.DeserializeObject<PackageConfig>(result.ResponseContent);
             var sfApplications = _locator.LocateSfApplications(baseConfig.SourceBasePath, baseConfig.BuildConfiguration);
-
 
             await _fabricRemote.Init(packageConfig.Cluster, baseConfig).ConfigureAwait(false);
             var deployedApps = await _fabricRemote.GetApplicationManifestsAsync().ConfigureAwait(false);
@@ -64,7 +65,7 @@ namespace SFPackager
             };
 
             var currentHashMapResponse = await _blobService
-                .ExecuteBlobOperationAsync(BlobOperation.GET, baseConfig, currentVersion.FileName)
+                .GetFileAsStringAsync(currentVersion.FileName, baseConfig)
                 .ConfigureAwait(false);
 
             var parsedApplications = new List<ServiceFabricApplicationProject>();
@@ -95,10 +96,9 @@ namespace SFPackager
 
             var versionJson = JsonConvert.SerializeObject(versions);
 
+            var fileName = versions[Constants.GlobalIdentifier].Version.FileName;
             await _blobService
-                .ExecuteBlobOperationAsync(BlobOperation.PUT, baseConfig,
-                    versions[Constants.GlobalIdentifier].Version.FileName,
-                    versionJson)
+                .SaveFileAsync(fileName, versionJson, baseConfig)
                 .ConfigureAwait(false);
 
             _packager.PackageApplications(versions, parsedApplications, packageConfig);

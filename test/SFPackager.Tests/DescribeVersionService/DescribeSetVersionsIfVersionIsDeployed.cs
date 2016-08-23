@@ -25,7 +25,7 @@ namespace SFPackager.Tests.DescribeVersionService
             // g
             var newVersion = VersionNumber.Create(2, "testhash");
             var response = File.ReadAllText(@"DescribeVersionService\BasicVersionResponse.json");
-            var currentHashMapResponse = new AzureResponse<string>
+            var currentHashMapResponse = new Response<string>
             {
                 StatusCode = HttpStatusCode.OK,
                 Operation = BlobOperation.GET,
@@ -87,7 +87,7 @@ namespace SFPackager.Tests.DescribeVersionService
             // g
             var newVersion = VersionNumber.Create(2, "testhash");
             var response = File.ReadAllText(@"DescribeVersionService\BasicVersionResponse.json");
-            var currentHashMapResponse = new AzureResponse<string>
+            var currentHashMapResponse = new Response<string>
             {
                 StatusCode = HttpStatusCode.OK,
                 Operation = BlobOperation.GET,
@@ -156,7 +156,7 @@ namespace SFPackager.Tests.DescribeVersionService
             // g
             var newVersion = VersionNumber.Create(2, "testhash");
             var response = File.ReadAllText(@"DescribeVersionService\ComplexVersionResponse.json");
-            var currentHashMapResponse = new AzureResponse<string>
+            var currentHashMapResponse = new Response<string>
             {
                 StatusCode = HttpStatusCode.OK,
                 Operation = BlobOperation.GET,

@@ -27,7 +27,7 @@ namespace SFPackager.Services
         }
 
         public void SetVersionsIfVersionIsDeployed(
-            AzureResponse<string> currentHashMapResponse,
+            Response<string> currentHashMapResponse,
             Dictionary<string, GlobalVersion> versions,
             VersionNumber newVersion)
         {

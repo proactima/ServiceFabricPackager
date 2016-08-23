@@ -9,5 +9,7 @@
         public string SourceBasePath { get; set; }
         public string BuildConfiguration { get; set; }
         public string CommitHash { get; set; }
+
+        public bool UseSecureCluster => true;
     }
 }
