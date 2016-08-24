@@ -9,7 +9,7 @@ namespace SFPackager.Services
     {
         public void PackageApplications(
             Dictionary<string, GlobalVersion> thingsToPackage,
-            List<ServiceFabricApplicationProject> appList,
+            Dictionary<string, ServiceFabricApplicationProject> appList,
             PackageConfig packageConfig)
         {
             var applications = thingsToPackage
@@ -18,14 +18,7 @@ namespace SFPackager.Services
 
             foreach (var source in applications)
             {
-                var appDataList = appList
-                    .Where(x => x.ApplicationTypeName.Equals(source.Key))
-                    .ToList();
-
-                if (!appDataList.Any())
-                    continue;
-
-                var appData = appDataList.First();
+                var appData = appList[source.Key];
 
                 Directory.CreateDirectory(appData.PackagePath);
                 CopyApplicationManifestToPackage(appData);
@@ -47,8 +40,7 @@ namespace SFPackager.Services
         {
             foreach (var service in services)
             {
-                var serviceData = appData.Services
-                    .FirstOrDefault(x => x.ServiceName.Equals(service.Key));
+                var serviceData = appData.Services[service.Key];
 
                 CopyServiceManifest(serviceData, appData);
 

@@ -18,6 +18,7 @@ namespace SFPackager
             Bind<VersionHandler>().ToSelf();
             Bind<VersionService>().ToSelf();
             Bind<Packager>().ToSelf();
+            Bind<ManifestWriter>().ToSelf();
         }
     }
 }

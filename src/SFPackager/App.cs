@@ -19,6 +19,7 @@ namespace SFPackager
         private readonly VersionHandler _versionHandler;
         private readonly VersionService _versionService;
         private readonly Packager _packager;
+        private readonly ManifestWriter _manifestWriter;
 
         public App(
             IHandleFiles blobService,
@@ -28,7 +29,8 @@ namespace SFPackager
             IHandleClusterConnection fabricRemote,
             VersionHandler versionHandler,
             VersionService versionService,
-            Packager packager)
+            Packager packager,
+            ManifestWriter manifestWriter)
         {
             _blobService = blobService;
             _locator = locator;
@@ -38,6 +40,7 @@ namespace SFPackager
             _versionHandler = versionHandler;
             _versionService = versionService;
             _packager = packager;
+            _manifestWriter = manifestWriter;
         }
 
         public async Task RunAsync(BaseConfig baseConfig)
@@ -68,12 +71,12 @@ namespace SFPackager
                 .GetFileAsStringAsync(currentVersion.FileName, baseConfig)
                 .ConfigureAwait(false);
 
-            var parsedApplications = new List<ServiceFabricApplicationProject>();
+            var parsedApplications = new Dictionary<string, ServiceFabricApplicationProject>();
 
             foreach (var sfApplication in sfApplications)
             {
                 var project = _projectHandler.Parse(sfApplication, baseConfig.SourceBasePath);
-                parsedApplications.Add(project);
+                parsedApplications.Add(project.ApplicationTypeName, project);
                 var serviceVersions = _hasher.Calculate(project);
 
                 versions.Add(project.ApplicationTypeName, new GlobalVersion
@@ -102,6 +105,7 @@ namespace SFPackager
                 .ConfigureAwait(false);
 
             _packager.PackageApplications(versions, parsedApplications, packageConfig);
+            _manifestWriter.UpdateAllTheThings(versions, parsedApplications);
         }
     }
 }
