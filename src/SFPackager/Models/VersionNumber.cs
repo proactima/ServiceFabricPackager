@@ -13,10 +13,12 @@ namespace SFPackager.Models
         public int RollingNumber { get; set; }
 
         [JsonIgnore]
-        public string Version => $"{RollingNumber}-{CommitHash}";
+        public string FileName => $"{this}.json";
 
-        [JsonIgnore]
-        public string FileName => $"{Version}.json";
+        public override string ToString()
+        {
+            return $"{RollingNumber}-{CommitHash}";
+        }
 
         public static VersionNumber Default()
         {

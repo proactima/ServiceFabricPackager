@@ -15,7 +15,7 @@ namespace SFPackager.Services
             
             foreach (var service in project.Services)
             {
-                foreach (var subPackage in service.SubPackages)
+                foreach (var subPackage in service.Value.SubPackages)
                 {
                     var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                     var directory = new DirectoryInfo(subPackage.Path);
@@ -50,14 +50,14 @@ namespace SFPackager.Services
                     {
                         Hash = hash,
                         VersionType = VersionType.ServicePackage,
-                        ParentRef = service.ServiceName,
+                        ParentRef = service.Key,
                         PackageType = subPackage.PackageType
                     };
 
-                    projectHashes.Add($"{service.ServiceName}-{subPackage.Name}", serviceVersion);
+                    projectHashes.Add($"{service.Key}-{subPackage.Name}", serviceVersion);
                 }
 
-                projectHashes.Add($"{service.ServiceName}", new GlobalVersion
+                projectHashes.Add($"{service.Key}", new GlobalVersion
                 {
                     VersionType = VersionType.Service,
                     ParentRef = project.ApplicationTypeName

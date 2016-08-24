@@ -59,10 +59,10 @@ namespace SFPackager.Services
             return string.Empty;
         }
 
-        private List<ServiceFabricServiceProject> ExtractProjectReferences(string basePath, string buildOutputPathSuffix, XmlNode document,
+        private Dictionary<string, ServiceFabricServiceProject> ExtractProjectReferences(string basePath, string buildOutputPathSuffix, XmlNode document,
             XmlNamespaceManager namespaceManager)
         {
-            var projectReferences = new List<ServiceFabricServiceProject>();
+            var projectReferences = new Dictionary<string, ServiceFabricServiceProject>();
 
             var projects = document.SelectNodes("//x:ProjectReference/@Include", namespaceManager);
 
@@ -86,7 +86,7 @@ namespace SFPackager.Services
                 var buildOutputPath = $"{projectFolder}{buildOutputPathSuffix}";
                 var stuff = _appManifestHandler.ReadXml(serviceProject, buildOutputPath);
 
-                projectReferences.Add(stuff);
+                projectReferences.Add(stuff.ServiceName, stuff);
             }
 
             return projectReferences;

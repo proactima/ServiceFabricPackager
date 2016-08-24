@@ -10,7 +10,7 @@ namespace SFPackager.Models
         public string ApplicationManifestFile => "ApplicationManifest.xml";
         public string ApplicationManifestPath { get; set; }
         public string ApplicationManifestFileFullPath => $"{ApplicationManifestPath}{ApplicationManifestFile}";
-        public List<ServiceFabricServiceProject> Services { get; set; } = new List<ServiceFabricServiceProject>();
+        public Dictionary<string, ServiceFabricServiceProject> Services { get; set; } = new Dictionary<string, ServiceFabricServiceProject>();
         public string ApplicationTypeName { get; set; }
         public string ApplicationTypeVersion { get; set; }
         public string BasePath { get; set; }
