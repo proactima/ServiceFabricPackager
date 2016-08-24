@@ -11,8 +11,7 @@ namespace SFPackager
         {
             Bind<App>().ToSelf();
             Bind<IHandleFiles>().To<AzureBlobService>();
-            Bind<ServiceFabricApplicationManifestHandler>().ToSelf();
-            Bind<ServiceFabricServiceManifestHandler>().ToSelf();
+            Bind<ManifestParser>().ToSelf();
             Bind<ServiceHashCalculator>().ToSelf();
             Bind<SfLocator>().ToSelf();
             Bind<SfProjectHandler>().ToSelf();

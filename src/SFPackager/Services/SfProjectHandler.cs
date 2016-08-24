@@ -8,13 +8,11 @@ namespace SFPackager.Services
 {
     public class SfProjectHandler
     {
-        private readonly ServiceFabricApplicationManifestHandler _appManifestHandler;
-        private readonly ServiceFabricServiceManifestHandler _serviceManifestHandler;
+        private readonly ManifestParser _appManifestHandler;
 
-        public SfProjectHandler(ServiceFabricApplicationManifestHandler appManifestHandler, ServiceFabricServiceManifestHandler serviceManifestHandler)
+        public SfProjectHandler(ManifestParser appManifestHandler)
         {
             _appManifestHandler = appManifestHandler;
-            _serviceManifestHandler = serviceManifestHandler;
         }
 
         public ServiceFabricApplicationProject Parse(ServiceFabricApplicationProject sfProject, string srcBasePath)
@@ -86,7 +84,7 @@ namespace SFPackager.Services
                 };
 
                 var buildOutputPath = $"{projectFolder}{buildOutputPathSuffix}";
-                var stuff = _serviceManifestHandler.ReadXml(serviceProject, buildOutputPath);
+                var stuff = _appManifestHandler.ReadXml(serviceProject, buildOutputPath);
 
                 projectReferences.Add(stuff);
             }
