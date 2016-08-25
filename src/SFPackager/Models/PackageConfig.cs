@@ -10,9 +10,11 @@ namespace SFPackager.Models
 
     public class HttpsConfig
     {
-        public string ServiceName { get; set; }
-        public string Endpoint { get; set; }
+        public string ApplicationTypeName { get; set; }
+        public string ServiceTypeName { get; set; }
+        public string EndpointName { get; set; }
         public string CertThumbprint { get; set; }
+        public string CertificateName { get; set; }
     }
 
     public class ClusterConfig

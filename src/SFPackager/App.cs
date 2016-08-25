@@ -105,7 +105,7 @@ namespace SFPackager
                 .ConfigureAwait(false);
 
             _packager.PackageApplications(versions, parsedApplications, packageConfig);
-            _manifestWriter.UpdateAllTheThings(versions, parsedApplications);
+            _manifestWriter.UpdateManifests(versions, parsedApplications, packageConfig);
         }
     }
 }
