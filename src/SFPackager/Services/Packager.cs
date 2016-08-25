@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SFPackager.Models;
@@ -7,6 +8,13 @@ namespace SFPackager.Services
 {
     public class Packager
     {
+        private readonly AspNetCorePackager _aspNetCorePackager;
+
+        public Packager(AspNetCorePackager aspNetCorePackager)
+        {
+            _aspNetCorePackager = aspNetCorePackager;
+        }
+
         public void PackageApplications(
             Dictionary<string, GlobalVersion> thingsToPackage,
             Dictionary<string, ServiceFabricApplicationProject> appList,
@@ -33,7 +41,7 @@ namespace SFPackager.Services
             }
         }
 
-        private static void CopyServicesToPackage(
+        private void CopyServicesToPackage(
             IEnumerable<KeyValuePair<string, GlobalVersion>> services,
             Dictionary<string, GlobalVersion> thingsToPackage,
             ServiceFabricApplicationProject appData)
@@ -51,7 +59,21 @@ namespace SFPackager.Services
 
                 foreach (var subPackage in subPackages)
                 {
-                    PackageFiles(appData, serviceData, subPackage);
+                    if (serviceData.IsAspNetCore && subPackage.Value.PackageType == PackageType.Code)
+                    {
+                        var package = serviceData.SubPackages
+                            .First(x => x.PackageType == PackageType.Code);
+                        var servicePackageFolder = $"{appData.PackagePath}\\{serviceData.ServiceName}\\{package.Name}";
+                        var resultCode = _aspNetCorePackager.Package(serviceData.ProjectFolder, servicePackageFolder, "Release");
+                        if (resultCode != 0)
+                        {
+                            throw new InvalidOperationException("Something went wrong packaging ASP.Net Core stuff");
+                        }
+                    }
+                    else
+                    {
+                        PackageFiles(appData, serviceData, subPackage);
+                    }
                 }
             }
         }
@@ -70,7 +92,7 @@ namespace SFPackager.Services
         {
             DirectoryInfo directory;
             IEnumerable<FileInfo> files;
-            var temp = serviceProject.SubPackages
+            var package = serviceProject.SubPackages
                 .First(x => x.PackageType == service.Value.PackageType);
 
             if (service.Value.PackageType == PackageType.Code)
@@ -85,7 +107,7 @@ namespace SFPackager.Services
             }
             else
             {
-                directory = new DirectoryInfo($"{serviceProject.PackageRoot}{temp.Name}");
+                directory = new DirectoryInfo($"{serviceProject.PackageRoot}{package.Name}");
                 files = directory
                     .GetFiles("*", SearchOption.AllDirectories)
                     .Select(x => x.FullName)
@@ -94,7 +116,7 @@ namespace SFPackager.Services
             }
 
             var basePathLength = directory.FullName.Length;
-            var servicePackageFolder = $"{appData.PackagePath}\\{serviceProject.ServiceName}\\{temp.Name}";
+            var servicePackageFolder = $"{appData.PackagePath}\\{serviceProject.ServiceName}\\{package.Name}";
             Directory.CreateDirectory(servicePackageFolder);
             foreach (var file in files)
             {
