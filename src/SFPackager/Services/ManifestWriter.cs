@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Xml;
 using SFPackager.Helpers;
@@ -51,12 +52,11 @@ namespace SFPackager.Services
                 // Add certificates stuff here
 
                 var httpsCerts = config.Https
-                    .Where(x => x.ApplicationTypeName.Equals(appData.ApplicationTypeName));
+                    .Where(x => x.ApplicationTypeName.Equals(appData.ApplicationTypeName))
+                    .ToList();
 
                 if (httpsCerts.Any())
-                {
                     AddCertificatesToAppManifest(httpsCerts, appDocument, namespaceString, appNsManager);
-                }
 
                 var serviceNodes = XmlHelper.GetNodes(
                     "//x:ApplicationManifest/x:ServiceManifestImport/x:ServiceManifestRef", appDocument, appNsManager);
@@ -149,14 +149,33 @@ namespace SFPackager.Services
 
             foreach (var certGroup in distinctThumbprints)
             {
+                if(!certGroup.Any())
+                    continue;
+
+                var certificate = certGroup.First();
+                var certName = $"Certificate{i}";
+
+                var endpointElement = appDocument.CreateElement("EndpointCertificate", namespaceString);
+                endpointElement.SetAttribute("X509FindValue", certificate.CertThumbprint);
+                endpointElement.SetAttribute("Name", certName);
+                certElement.AppendChild(endpointElement);
+
                 foreach (var cert in certGroup)
                 {
-                    var endpointElement = appDocument.CreateElement("EndpointCertificate", namespaceString);
-                    endpointElement.SetAttribute("X509FindValue", cert.CertThumbprint);
-                    endpointElement.SetAttribute("Name", $"Certificate{i}");
-                    certElement.AppendChild(endpointElement);
-                    i++;
+                    var serviceManifestNode = XmlHelper.GetNode($"//x:ApplicationManifest/x:ServiceManifestImport/x:ServiceManifestRef[@ServiceManifestName='{cert.ServiceManifestName}']", appDocument, appNsManager);
+                    if(serviceManifestNode == null)
+                        continue;
+
+                    var importNode = serviceManifestNode.ParentNode;
+                    var policyNode = appDocument.CreateElement("Policies", namespaceString);
+                    var bindingNode = appDocument.CreateElement("EndpointBindingPolicy", namespaceString);
+                    bindingNode.SetAttribute("EndpointRef", cert.EndpointName);
+                    bindingNode.SetAttribute("CertificateRef", certName);
+                    policyNode.AppendChild(bindingNode);
+                    importNode.AppendChild(policyNode);
                 }
+
+                i++;
             }
 
             var root = XmlHelper.GetNode("//x:ApplicationManifest", appDocument, appNsManager);
