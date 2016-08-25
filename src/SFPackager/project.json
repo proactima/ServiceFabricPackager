@@ -8,7 +8,7 @@
     "Microsoft.AspNetCore.WebUtilities": "1.0.0",
     "Microsoft.NETCore.App": "1.0.0",
     "Newtonsoft.Json": "9.0.1",
-    "Ninject": "4.0.0-beta-0134",
+    "SimpleInjector": "3.2.0",
     "System.Net.Http": "4.1.0",
     "System.Runtime.Serialization.Xml": "4.1.1",
     "System.Xml.XDocument": "4.0.11",
