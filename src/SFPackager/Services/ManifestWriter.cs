@@ -11,7 +11,10 @@ namespace SFPackager.Services
 {
     public class ManifestWriter
     {
-        public void UpdateAllTheThings(Dictionary<string, GlobalVersion> versions, Dictionary<string, ServiceFabricApplicationProject> applications)
+        public void UpdateManifests(
+            Dictionary<string, GlobalVersion> versions,
+            Dictionary<string, ServiceFabricApplicationProject> applications,
+            PackageConfig config)
         {
             // For each application that has changed
             // Set main application version
@@ -47,7 +50,13 @@ namespace SFPackager.Services
                 XmlHelper.RemoveNodes("//x:ApplicationManifest/x:DefaultServices", "/x:Service", appDocument, appNsManager);
                 // Add certificates stuff here
 
-                AddCertificatesToAppManifest(appDocument, namespaceString, appNsManager);
+                var httpsCerts = config.Https
+                    .Where(x => x.ApplicationTypeName.Equals(appData.ApplicationTypeName));
+
+                if (httpsCerts.Any())
+                {
+                    AddCertificatesToAppManifest(httpsCerts, appDocument, namespaceString, appNsManager);
+                }
 
                 var serviceNodes = XmlHelper.GetNodes(
                     "//x:ApplicationManifest/x:ServiceManifestImport/x:ServiceManifestRef", appDocument, appNsManager);
@@ -129,15 +138,26 @@ namespace SFPackager.Services
         }
 
         private static void AddCertificatesToAppManifest(
+            IEnumerable<HttpsConfig> httpsCerts,
             XmlDocument appDocument,
             string namespaceString,
             XmlNamespaceManager appNsManager)
         {
+            var i = 0;
             var certElement = appDocument.CreateElement("Certificates", namespaceString);
-            var b = appDocument.CreateElement("EndpointCertificate", namespaceString);
-            b.SetAttribute("X509FindValue", "THUMBPRINT");
-            b.SetAttribute("Name", "CERTNAME");
-            certElement.AppendChild(b);
+            var distinctThumbprints = httpsCerts.GroupBy(x => x.CertThumbprint);
+
+            foreach (var certGroup in distinctThumbprints)
+            {
+                foreach (var cert in certGroup)
+                {
+                    var endpointElement = appDocument.CreateElement("EndpointCertificate", namespaceString);
+                    endpointElement.SetAttribute("X509FindValue", cert.CertThumbprint);
+                    endpointElement.SetAttribute("Name", $"Certificate{i}");
+                    certElement.AppendChild(endpointElement);
+                    i++;
+                }
+            }
 
             var root = XmlHelper.GetNode("//x:ApplicationManifest", appDocument, appNsManager);
             root.AppendChild(certElement);
