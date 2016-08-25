@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SFPackager.Helpers;
@@ -45,18 +46,25 @@ namespace SFPackager
 
         public async Task RunAsync(BaseConfig baseConfig)
         {
+            Console.WriteLine("Loading config file...");
             var result = await _blobService
                 .GetFileAsStringAsync(baseConfig.AzureStorageConfigFileName, baseConfig)
                 .ConfigureAwait(false);
             
             var packageConfig = JsonConvert.DeserializeObject<PackageConfig>(result.ResponseContent);
+
+            
             var sfApplications = _locator.LocateSfApplications(baseConfig.SourceBasePath, baseConfig.BuildConfiguration);
 
             await _fabricRemote.Init(packageConfig.Cluster, baseConfig).ConfigureAwait(false);
+
+            Console.WriteLine("Trying to read app manifest from deployed applications...");
             var deployedApps = await _fabricRemote.GetApplicationManifestsAsync().ConfigureAwait(false);
             //var currentVersion = _versionHandler.GetCurrentVersionFromApplications(deployedApps);
             var currentVersion = VersionNumber.Create(2, "mysupercommithash");
             var newVersion = currentVersion.Increment(baseConfig.CommitHash);
+
+            Console.WriteLine($"New version is: {newVersion}");
 
             var versions = new Dictionary<string, GlobalVersion>
             {
@@ -67,15 +75,17 @@ namespace SFPackager
                 }
             };
 
+            Console.WriteLine($"Loading version manifest for {currentVersion}");
             var currentHashMapResponse = await _blobService
                 .GetFileAsStringAsync(currentVersion.FileName, baseConfig)
                 .ConfigureAwait(false);
 
             var parsedApplications = new Dictionary<string, ServiceFabricApplicationProject>();
 
+            Console.WriteLine("Parsing Service Fabric Applications and computing hashes");
             foreach (var sfApplication in sfApplications)
             {
-                var project = _projectHandler.Parse(sfApplication, baseConfig.SourceBasePath);
+                var project = _projectHandler.Parse(sfApplication, baseConfig.SourceBasePath, baseConfig);
                 parsedApplications.Add(project.ApplicationTypeName, project);
                 var serviceVersions = _hasher.Calculate(project);
 
@@ -90,22 +100,27 @@ namespace SFPackager
 
             if (!currentHashMapResponse.IsSuccessful)
             {
+                Console.WriteLine($"No remote version map found, setting everything to {newVersion}");
                 _versionService.SetVersionIfNoneIsDeployed(versions, newVersion);
             }
             else
             {
+                Console.WriteLine($"Setting version of changed packages to {newVersion}");
                 _versionService.SetVersionsIfVersionIsDeployed(currentHashMapResponse, versions, newVersion);
             }
 
-            var versionJson = JsonConvert.SerializeObject(versions);
+            Console.WriteLine("Packaging applications");
+            _packager.PackageApplications(versions, parsedApplications, packageConfig);
 
+            Console.WriteLine("Updating manifests");
+            _manifestWriter.UpdateManifests(versions, parsedApplications, packageConfig);
+
+            Console.WriteLine($"Storing version map for {newVersion}");
+            var versionJson = JsonConvert.SerializeObject(versions);
             var fileName = versions[Constants.GlobalIdentifier].Version.FileName;
             await _blobService
                 .SaveFileAsync(fileName, versionJson, baseConfig)
                 .ConfigureAwait(false);
-
-            _packager.PackageApplications(versions, parsedApplications, packageConfig);
-            _manifestWriter.UpdateManifests(versions, parsedApplications, packageConfig);
         }
     }
 }

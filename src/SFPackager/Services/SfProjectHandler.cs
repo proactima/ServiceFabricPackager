@@ -15,7 +15,7 @@ namespace SFPackager.Services
             _appManifestHandler = appManifestHandler;
         }
 
-        public ServiceFabricApplicationProject Parse(ServiceFabricApplicationProject sfProject, string srcBasePath)
+        public ServiceFabricApplicationProject Parse(ServiceFabricApplicationProject sfProject, string srcBasePath, BaseConfig baseConfig)
         {
             var basePath = FileHelper.RemoveFileFromPath(sfProject.ProjectFileFullPath);
 
@@ -26,13 +26,13 @@ namespace SFPackager.Services
                 document.Load(reader);
                 var manager = new XmlNamespaceManager(document.NameTable);
                 manager.AddNamespace("x", "http://schemas.microsoft.com/developer/msbuild/2003");
-                
+
                 sfProject.ApplicationManifestPath = ExtractApplicationManifest(basePath, document, manager);
                 sfProject.BasePath = srcBasePath;
 
                 sfProject = _appManifestHandler.ReadXml(sfProject);
 
-                sfProject.Services = ExtractProjectReferences(basePath, sfProject.BuildOutputPathSuffix ,document, manager);
+                sfProject.Services = ExtractProjectReferences(basePath, sfProject.BuildOutputPathSuffix, baseConfig, document, manager);
 
                 return sfProject;
             }
@@ -59,7 +59,11 @@ namespace SFPackager.Services
             return string.Empty;
         }
 
-        private Dictionary<string, ServiceFabricServiceProject> ExtractProjectReferences(string basePath, string buildOutputPathSuffix, XmlNode document,
+        private Dictionary<string, ServiceFabricServiceProject> ExtractProjectReferences(
+            string basePath,
+            string buildOutputPathSuffix,
+            BaseConfig baseConfig,
+            XmlNode document,
             XmlNamespaceManager namespaceManager)
         {
             var projectReferences = new Dictionary<string, ServiceFabricServiceProject>();
@@ -75,18 +79,24 @@ namespace SFPackager.Services
                 var path = FileHelper.RemoveFileFromPath(attr.Value);
                 var absolutePath = Path.GetFullPath($"{basePath}{path}");
                 var projectFolder = FileHelper.RemoveFileFromPath(absolutePath);
+                var projectFile = FileHelper.RemovePathFromPath(attr.Value);
 
                 var serviceProject = new ServiceFabricServiceProject
                 {
                     PackageRoot = $"{projectFolder}PackageRoot\\",
                     ProjectFolder = projectFolder,
-                    ProjectFile = FileHelper.RemovePathFromPath(attr.Value)
+                    ProjectFile = projectFile
                 };
 
-                var buildOutputPath = $"{projectFolder}{buildOutputPathSuffix}";
-                var stuff = _appManifestHandler.ReadXml(serviceProject, buildOutputPath);
+                // Ugly ASP.Net hack for now
+                var buildOutputPath = projectFile.EndsWith(".xproj")
+                    ? $"{projectFolder}bin\\{baseConfig.BuildConfiguration}\\net451"
+                    : $"{projectFolder}{buildOutputPathSuffix}";
 
-                projectReferences.Add(stuff.ServiceName, stuff);
+                var projectInfo = _appManifestHandler.ReadXml(serviceProject, buildOutputPath);
+
+                projectInfo.IsAspNetCore = projectFile.EndsWith(".xproj");
+                projectReferences.Add(projectInfo.ServiceName, projectInfo);
             }
 
             return projectReferences;

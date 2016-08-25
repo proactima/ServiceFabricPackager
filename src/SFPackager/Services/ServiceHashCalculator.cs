@@ -17,6 +17,7 @@ namespace SFPackager.Services
             {
                 foreach (var subPackage in service.Value.SubPackages)
                 {
+                    Console.WriteLine($"Computing hash for Service: {service.Key} - Package: {subPackage.Name}");
                     var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                     var directory = new DirectoryInfo(subPackage.Path);
                     IOrderedEnumerable<string> files;
@@ -63,37 +64,6 @@ namespace SFPackager.Services
                     ParentRef = project.ApplicationTypeName
                 });
             }
-            
-
-            //foreach (var includedProject in project.Services)
-            //{
-            //    var outputPath = $"{includedProject.ProjectFolder}{project.BuildOutputPathSuffix}";
-            //    var directory = new DirectoryInfo(outputPath);
-            //    var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-            //    var files = directory
-            //        .GetFiles("*", SearchOption.AllDirectories)
-            //        .Where(Constants.IncludeFileFilter)
-            //        .Where(Constants.IgnoreList)
-            //        .Select(x => x.FullName)
-            //        .OrderBy(x => x);
-
-            //    foreach (var data in files.Select(File.ReadAllBytes))
-            //    {
-            //        hasher.AppendData(data);
-            //    }
-
-            //    var finalHash = hasher.GetHashAndReset();
-            //    var hash = BitConverter.ToString(finalHash).Replace("-", "").ToLowerInvariant();
-
-            //    var serviceVersion = new GlobalVersion
-            //    {
-            //        Hash = hash,
-            //        VersionType = VersionType.Service,
-            //        ParentRef = project.ApplicationTypeName
-            //    };
-
-            //    projectHashes.Add(includedProject.ServiceName, serviceVersion);
-            //}
 
             return projectHashes;
         }
