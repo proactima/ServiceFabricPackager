@@ -23,7 +23,7 @@ namespace SFPackager
             //container.Register<VersionService>();
             //container.Register<Packager>();
             //container.Register<ManifestWriter>();
-
+            
             if (config.UseSecureCluster)
                 container.Register<IHandleClusterConnection, SecureClusterConnection>();
             else
