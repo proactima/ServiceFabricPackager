@@ -60,8 +60,7 @@ namespace SFPackager
 
             Console.WriteLine("Trying to read app manifest from deployed applications...");
             var deployedApps = await _fabricRemote.GetApplicationManifestsAsync().ConfigureAwait(false);
-            //var currentVersion = _versionHandler.GetCurrentVersionFromApplications(deployedApps);
-            var currentVersion = VersionNumber.Create(2, "mysupercommithash");
+            var currentVersion = _versionHandler.GetCurrentVersionFromApplications(deployedApps);
             var newVersion = currentVersion.Increment(baseConfig.CommitHash);
 
             Console.WriteLine($"New version is: {newVersion}");
@@ -110,7 +109,7 @@ namespace SFPackager
             }
 
             Console.WriteLine("Packaging applications");
-            _packager.PackageApplications(versions, parsedApplications, packageConfig);
+            await _packager.PackageApplications(versions, parsedApplications, packageConfig, baseConfig).ConfigureAwait(false);
 
             Console.WriteLine("Updating manifests");
             _manifestWriter.UpdateManifests(versions, parsedApplications, packageConfig);
