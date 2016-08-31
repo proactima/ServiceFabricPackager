@@ -57,11 +57,10 @@ namespace SFPackager
             var packageConfig = await configManager.GetPackageConfig().ConfigureAwait(false);
 
             var container = SimpleInjectorSetup.Configure(baseConfig, packageConfig);
-
-            var app = container.GetInstance<App>();
-
+            
             try
             {
+                var app = container.GetInstance<App>();
                 await app.RunAsync().ConfigureAwait(false);
             }
             catch (Exception ex)

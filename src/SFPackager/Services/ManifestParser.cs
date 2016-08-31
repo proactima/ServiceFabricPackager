@@ -15,12 +15,9 @@ namespace SFPackager.Services
             var nsManager = new XmlNamespaceManager(document.NameTable);
             nsManager.AddNamespace("x", "http://schemas.microsoft.com/2011/01/fabric");
 
-            appProject.ApplicationTypeName = XmlHelper.GetSingleValue("//x:ApplicationManifest/@ApplicationTypeName",
-                document,
-                nsManager);
+            appProject.ApplicationTypeName = document.GetSingleValue("//x:ApplicationManifest/@ApplicationTypeName", nsManager);
             appProject.ApplicationTypeVersion =
-                XmlHelper.GetSingleValue("//x:ApplicationManifest/@ApplicationTypeVersion",
-                    document, nsManager);
+                document.GetSingleValue("//x:ApplicationManifest/@ApplicationTypeVersion", nsManager);
 
             return appProject;
         }
@@ -33,8 +30,8 @@ namespace SFPackager.Services
             var nsManager = new XmlNamespaceManager(document.NameTable);
             nsManager.AddNamespace("x", "http://schemas.microsoft.com/2011/01/fabric");
 
-            project.ServiceName = XmlHelper.GetSingleValue("//x:ServiceManifest/@Name", document, nsManager);
-            project.ServiceVersion = XmlHelper.GetSingleValue("//x:ServiceManifest/@Version", document, nsManager);
+            project.ServiceName = document.GetSingleValue("//x:ServiceManifest/@Name", nsManager);
+            project.ServiceVersion = document.GetSingleValue("//x:ServiceManifest/@Version", nsManager);
 
             var codePackage = GetPackageInfo("CodePackage", PackageType.Code, project, document, nsManager);
             codePackage.Path = buildOutputPath;
@@ -57,11 +54,11 @@ namespace SFPackager.Services
             XmlNode document,
             XmlNamespaceManager nsManager)
         {
-            var name = XmlHelper.GetSingleValue($"//x:{packageName}/@Name", document, nsManager);
+            var name = document.GetSingleValue($"//x:{packageName}/@Name", nsManager);
             var configPackage = new SubPackage
             {
                 Name = name,
-                Version = XmlHelper.GetSingleValue($"//x:{packageName}/@Version", document, nsManager),
+                Version = document.GetSingleValue($"//x:{packageName}/@Version", nsManager),
                 PackageType = packageType,
                 Path = $"{project.PackageRoot}{name}"
             };
