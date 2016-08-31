@@ -12,18 +12,18 @@ namespace SFPackager.Services
     {
         private readonly AspNetCorePackager _aspNetCorePackager;
         private readonly IHandleFiles _fileHandler;
+        private readonly PackageConfig _packageConfig;
 
-        public Packager(AspNetCorePackager aspNetCorePackager, IHandleFiles fileHandler)
+        public Packager(AspNetCorePackager aspNetCorePackager, IHandleFiles fileHandler, PackageConfig packageConfig)
         {
             _aspNetCorePackager = aspNetCorePackager;
             _fileHandler = fileHandler;
+            _packageConfig = packageConfig;
         }
 
         public async Task PackageApplications(
             Dictionary<string, GlobalVersion> thingsToPackage,
-            Dictionary<string, ServiceFabricApplicationProject> appList,
-            PackageConfig packageConfig,
-            BaseConfig baseConfig)
+            Dictionary<string, ServiceFabricApplicationProject> appList)
         {
             var applications = thingsToPackage
                 .Where(x => x.Value.VersionType == VersionType.Application)
@@ -42,16 +42,14 @@ namespace SFPackager.Services
                     .Where(x => x.Value.ParentRef.Equals(source.Key))
                     .ToList();
 
-                await CopyServicesToPackage(servicesToCopy, thingsToPackage, appData, packageConfig, baseConfig).ConfigureAwait(false);
+                await CopyServicesToPackage(servicesToCopy, thingsToPackage, appData).ConfigureAwait(false);
             }
         }
 
         private async Task CopyServicesToPackage(
             IEnumerable<KeyValuePair<string, GlobalVersion>> services,
             Dictionary<string, GlobalVersion> thingsToPackage,
-            ServiceFabricApplicationProject appData,
-            PackageConfig packageConfig,
-            BaseConfig baseConfig)
+            ServiceFabricApplicationProject appData)
         {
             foreach (var service in services)
             {
@@ -79,7 +77,7 @@ namespace SFPackager.Services
                     }
                     else
                     {
-                        await PackageFiles(appData, serviceData, subPackage, packageConfig, baseConfig).ConfigureAwait(false);
+                        await PackageFiles(appData, serviceData, subPackage).ConfigureAwait(false);
                     }
                 }
             }
@@ -95,16 +93,14 @@ namespace SFPackager.Services
         private async Task PackageFiles(
             ServiceFabricApplicationProject appData,
             ServiceFabricServiceProject serviceProject,
-            KeyValuePair<string, GlobalVersion> service,
-            PackageConfig packageConfig,
-            BaseConfig baseConfig)
+            KeyValuePair<string, GlobalVersion> service)
         {
             DirectoryInfo directory;
             IEnumerable<FileInfo> files;
             var package = serviceProject.SubPackages
                 .First(x => x.PackageType == service.Value.PackageType);
 
-            var extraFiles = packageConfig
+            var extraFiles = _packageConfig
                 .ExternalIncludes
                 .Where(x => x
                     .ApplicationTypeName.Equals(appData.ApplicationTypeName,
@@ -152,7 +148,7 @@ namespace SFPackager.Services
             foreach (var externalFile in extraFiles)
             {
                 var file = await _fileHandler
-                    .GetFileAsBytesAsync(externalFile.SourceFileName, baseConfig)
+                    .GetFileAsBytesAsync(externalFile.SourceFileName)
                     .ConfigureAwait(false);
 
                 if(!file.IsSuccessful)

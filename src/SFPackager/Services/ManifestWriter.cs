@@ -12,10 +12,16 @@ namespace SFPackager.Services
 {
     public class ManifestWriter
     {
+        private readonly PackageConfig _packageConfig;
+
+        public ManifestWriter(PackageConfig packageConfig)
+        {
+            _packageConfig = packageConfig;
+        }
+
         public void UpdateManifests(
             Dictionary<string, GlobalVersion> versions,
-            Dictionary<string, ServiceFabricApplicationProject> applications,
-            PackageConfig config)
+            Dictionary<string, ServiceFabricApplicationProject> applications)
         {
             // For each application that has changed
             // Set main application version
@@ -51,7 +57,7 @@ namespace SFPackager.Services
                 XmlHelper.RemoveNodes("//x:ApplicationManifest/x:DefaultServices", "/x:Service", appDocument, appNsManager);
                 // Add certificates stuff here
 
-                var httpsCerts = config.Https
+                var httpsCerts = _packageConfig.Https
                     .Where(x => x.ApplicationTypeName.Equals(appData.ApplicationTypeName))
                     .ToList();
 

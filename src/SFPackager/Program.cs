@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using SFPackager.Interfaces;
 using SFPackager.Models;
+using SFPackager.Services;
 
 namespace SFPackager
 {
@@ -50,12 +52,17 @@ namespace SFPackager
 
         private static async Task MainAsync(BaseConfig baseConfig)
         {
-            var container = SimpleInjectorSetup.Configure(baseConfig);
+            var setupContainer = SimpleInjectorSetup.GetSetupContainer(baseConfig);
+            var configManager = setupContainer.GetInstance<ConfigManager>();
+            var packageConfig = await configManager.GetPackageConfig().ConfigureAwait(false);
+
+            var container = SimpleInjectorSetup.Configure(baseConfig, packageConfig);
+
             var app = container.GetInstance<App>();
 
             try
             {
-                await app.RunAsync(baseConfig).ConfigureAwait(false);
+                await app.RunAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {

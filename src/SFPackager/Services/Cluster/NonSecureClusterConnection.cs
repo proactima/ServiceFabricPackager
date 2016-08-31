@@ -9,10 +9,17 @@ namespace SFPackager.Services.Cluster
 {
     public class NonSecureClusterConnection : BaseClusterConnection, IHandleClusterConnection
     {
-        public Task Init(ClusterConfig clusterConfig, BaseConfig buildConfig)
+        private readonly PackageConfig _packageConfig;
+
+        public NonSecureClusterConnection(PackageConfig packageConfig)
         {
-            Hostname = clusterConfig.Endpoint;
-            Port = clusterConfig.Port;
+            _packageConfig = packageConfig;
+        }
+
+        public Task Init()
+        {
+            Hostname = _packageConfig.Cluster.Endpoint;
+            Port = _packageConfig.Cluster.Port;
 
             return Task.FromResult(0);
         }

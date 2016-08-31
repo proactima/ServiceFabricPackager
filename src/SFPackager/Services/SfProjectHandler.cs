@@ -9,13 +9,15 @@ namespace SFPackager.Services
     public class SfProjectHandler
     {
         private readonly ManifestParser _appManifestHandler;
+        private readonly BaseConfig _baseConfig;
 
-        public SfProjectHandler(ManifestParser appManifestHandler)
+        public SfProjectHandler(ManifestParser appManifestHandler, BaseConfig baseConfig)
         {
             _appManifestHandler = appManifestHandler;
+            _baseConfig = baseConfig;
         }
 
-        public ServiceFabricApplicationProject Parse(ServiceFabricApplicationProject sfProject, string srcBasePath, BaseConfig baseConfig)
+        public ServiceFabricApplicationProject Parse(ServiceFabricApplicationProject sfProject, string srcBasePath)
         {
             var basePath = FileHelper.RemoveFileFromPath(sfProject.ProjectFileFullPath);
 
@@ -32,7 +34,7 @@ namespace SFPackager.Services
 
                 sfProject = _appManifestHandler.ReadXml(sfProject);
 
-                sfProject.Services = ExtractProjectReferences(basePath, sfProject.BuildOutputPathSuffix, baseConfig, document, manager);
+                sfProject.Services = ExtractProjectReferences(basePath, sfProject.BuildOutputPathSuffix, document, manager);
 
                 return sfProject;
             }
@@ -62,7 +64,6 @@ namespace SFPackager.Services
         private Dictionary<string, ServiceFabricServiceProject> ExtractProjectReferences(
             string basePath,
             string buildOutputPathSuffix,
-            BaseConfig baseConfig,
             XmlNode document,
             XmlNamespaceManager namespaceManager)
         {
@@ -90,7 +91,7 @@ namespace SFPackager.Services
 
                 // Ugly ASP.Net hack for now
                 var buildOutputPath = projectFile.EndsWith(".xproj")
-                    ? $"{projectFolder}bin\\{baseConfig.BuildConfiguration}\\net451"
+                    ? $"{projectFolder}bin\\{_baseConfig.BuildConfiguration}\\net451"
                     : $"{projectFolder}{buildOutputPathSuffix}";
 
                 var projectInfo = _appManifestHandler.ReadXml(serviceProject, buildOutputPath);

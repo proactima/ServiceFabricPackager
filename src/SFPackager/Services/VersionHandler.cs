@@ -16,10 +16,10 @@ namespace SFPackager.Services
             _blobService = blobService;
         }
 
-        public async Task<GlobalVersion> LoadVersionAsync(VersionNumber version, BaseConfig config)
+        public async Task<GlobalVersion> LoadVersionAsync(VersionNumber version)
         {
             var result = await _blobService
-                .GetFileAsStringAsync(version.FileName, config)
+                .GetFileAsStringAsync(version.FileName)
                 .ConfigureAwait(false);
 
             if (!result.IsSuccessful)
@@ -29,11 +29,11 @@ namespace SFPackager.Services
             return versionHashMap;
         }
 
-        public async Task SaveVersionAsync(GlobalVersion globalVersionHashMap, VersionNumber version, BaseConfig config)
+        public async Task SaveVersionAsync(GlobalVersion globalVersionHashMap, VersionNumber version)
         {
             var payload = JsonConvert.SerializeObject(globalVersionHashMap);
             var result = await _blobService
-                .SaveFileAsync(version.FileName, payload, config)
+                .SaveFileAsync(version.FileName, payload)
                 .ConfigureAwait(false);
         }
 
