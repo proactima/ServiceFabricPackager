@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using SFPackager.Interfaces;
 using SFPackager.Models;
@@ -10,36 +11,23 @@ namespace SFPackager
     {
         public static void Main(string[] args)
         {
+            var parser = new CommandLineParser.CommandLineParser();
+            var target = new CmdLineOptions();
+            parser.ExtractArgumentAttributes(target);
+            
             try
             {
-                if (args.Length != 7)
-                {
-                    Console.WriteLine("You must pass the following args for it to work:");
-                    Console.WriteLine("Azure Storage Account Name");
-                    Console.WriteLine("Azure Storage Account Key");
-                    Console.WriteLine("Azure Storage Container Name");
-                    Console.WriteLine("Azure Storage Config File Name");
-                    Console.WriteLine("Source base path");
-                    Console.WriteLine("Build configuration");
-                    Console.WriteLine("Commit Hash");
-                    Console.WriteLine();
-                    Console.WriteLine(
-                        "Example: sfpackager.exe myaccount \"mysupersecretkey\" mycontainer myconfigfile \"c:\\temp\\mystuff\" Debug fdjfs8af3ah88f");
-                    return;
-                }
+                parser.ParseCommandLine(args);
+            }
+            catch (Exception)
+            {
+                parser.ShowUsage();
+                return;
+            }
 
-                var config = new BaseConfig
-                {
-                    AzureStorageAccountName = args[0],
-                    AzureStorageAccountKey = args[1],
-                    AzureStorageContainerName = args[2],
-                    AzureStorageConfigFileName = args[3],
-                    SourceBasePath = args[4],
-                    BuildConfiguration = args[5],
-                    CommitHash = args[6]
-                };
-
-                MainAsync(config).Wait();
+            try
+            {
+                MainAsync(target).Wait();
             }
             catch (Exception ex)
             {
@@ -50,7 +38,7 @@ namespace SFPackager
             Console.ReadLine();
         }
 
-        private static async Task MainAsync(BaseConfig baseConfig)
+        private static async Task MainAsync(CmdLineOptions baseConfig)
         {
             var setupContainer = SimpleInjectorSetup.GetSetupContainer(baseConfig);
             var configManager = setupContainer.GetInstance<ConfigManager>();
