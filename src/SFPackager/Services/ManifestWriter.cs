@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Xml;
 using SFPackager.Helpers;
 using SFPackager.Models;
@@ -12,6 +10,7 @@ namespace SFPackager.Services
 {
     public class ManifestWriter
     {
+        private const string NamespaceString = "http://schemas.microsoft.com/2011/01/fabric";
         private readonly PackageConfig _packageConfig;
 
         public ManifestWriter(PackageConfig packageConfig)
@@ -23,18 +22,6 @@ namespace SFPackager.Services
             Dictionary<string, GlobalVersion> versions,
             Dictionary<string, ServiceFabricApplicationProject> applications)
         {
-            // For each application that has changed
-            // Set main application version
-            // Add certificates
-            // Remove Parameters
-            // Remove Default Services
-            // For each service
-            // Set version on each version in app manifest
-            // Add certificate policies to services
-            // Set service version in servicemanifest
-            // For each package in service
-            // Set package version
-
             var apps = versions
                 .Where(x => x.Value.VersionType == VersionType.Application)
                 .Where(x => x.Value.IncludeInPackage)
@@ -49,12 +36,11 @@ namespace SFPackager.Services
                 var rawAppXml = File.ReadAllText(packagedAppManifest);
                 appDocument.LoadXml(rawAppXml);
                 var appNsManager = new XmlNamespaceManager(appDocument.NameTable);
-                var namespaceString = "http://schemas.microsoft.com/2011/01/fabric";
-                appNsManager.AddNamespace("x", namespaceString);
+                appNsManager.AddNamespace("x", NamespaceString);
 
-                XmlHelper.SetSingleValue("//x:ApplicationManifest/@ApplicationTypeVersion", app.Value.Version.ToString(), appDocument, appNsManager);
-                XmlHelper.RemoveNodes("//x:ApplicationManifest/x:Parameters", "/x:Parameter", appDocument, appNsManager);
-                XmlHelper.RemoveNodes("//x:ApplicationManifest/x:DefaultServices", "/x:Service", appDocument, appNsManager);
+                appDocument.SetSingleValue("//x:ApplicationManifest/@ApplicationTypeVersion", app.Value.Version.ToString(), appNsManager);
+                appDocument.RemoveNodes("//x:ApplicationManifest/x:Parameters", "/x:Parameter", appNsManager);
+                appDocument.RemoveNodes("//x:ApplicationManifest/x:DefaultServices", "/x:Service", appNsManager);
                 // Add certificates stuff here
 
                 var httpsCerts = _packageConfig.Https
@@ -62,10 +48,9 @@ namespace SFPackager.Services
                     .ToList();
 
                 if (httpsCerts.Any())
-                    AddCertificatesToAppManifest(httpsCerts, appDocument, namespaceString, appNsManager);
+                    AddCertificatesToAppManifest(httpsCerts, appDocument, NamespaceString, appNsManager);
 
-                var serviceNodes = XmlHelper.GetNodes(
-                    "//x:ApplicationManifest/x:ServiceManifestImport/x:ServiceManifestRef", appDocument, appNsManager);
+                var serviceNodes = appDocument.GetNodes("//x:ApplicationManifest/x:ServiceManifestImport/x:ServiceManifestRef", appNsManager);
 
                 foreach (var service in serviceNodes)
                 {
@@ -95,14 +80,15 @@ namespace SFPackager.Services
                 {
                     var serviceData = appData.Services[service.Key];
 
-                    var packagedServiceManifest = Path.Combine(appData.PackagePath, service.Key, serviceData.ServiceManifestFile);
+                    var packagedServiceManifest = Path.Combine(appData.PackagePath, service.Key,
+                        serviceData.ServiceManifestFile);
                     var serviceDocument = new XmlDocument();
                     var rawServiceXml = File.ReadAllText(packagedServiceManifest);
                     serviceDocument.LoadXml(rawServiceXml);
                     var serviceNsManager = new XmlNamespaceManager(serviceDocument.NameTable);
-                    serviceNsManager.AddNamespace("x", namespaceString);
+                    serviceNsManager.AddNamespace("x", NamespaceString);
 
-                    XmlHelper.SetSingleValue("//x:ServiceManifest/@Version", service.Value.Version.ToString(), serviceDocument, serviceNsManager);
+                    serviceDocument.SetSingleValue("//x:ServiceManifest/@Version", service.Value.Version.ToString(), serviceNsManager);
 
                     var subPackages = versions
                         .Where(x => x.Value.ParentRef.Equals(service.Key))
@@ -130,8 +116,7 @@ namespace SFPackager.Services
                                 throw new ArgumentOutOfRangeException();
                         }
 
-                        var node = XmlHelper.GetNode($"//x:ServiceManifest/x:{nodeName}[@Name='{packageName}']", serviceDocument,
-                                    serviceNsManager);
+                        var node = serviceDocument.GetNode($"//x:ServiceManifest/x:{nodeName}[@Name='{packageName}']", serviceNsManager);
                         node.Attributes["Version"].Value = package.Value.Version.ToString();
                     }
 
@@ -143,7 +128,7 @@ namespace SFPackager.Services
             }
         }
 
-        private static void AddCertificatesToAppManifest(
+        private void AddCertificatesToAppManifest(
             IEnumerable<HttpsConfig> httpsCerts,
             XmlDocument appDocument,
             string namespaceString,
@@ -155,7 +140,7 @@ namespace SFPackager.Services
 
             foreach (var certGroup in distinctThumbprints)
             {
-                if(!certGroup.Any())
+                if (!certGroup.Any())
                     continue;
 
                 var certificate = certGroup.First();
@@ -168,8 +153,9 @@ namespace SFPackager.Services
 
                 foreach (var cert in certGroup)
                 {
-                    var serviceManifestNode = XmlHelper.GetNode($"//x:ApplicationManifest/x:ServiceManifestImport/x:ServiceManifestRef[@ServiceManifestName='{cert.ServiceManifestName}']", appDocument, appNsManager);
-                    if(serviceManifestNode == null)
+                    var serviceManifestNode =
+                        appDocument.GetNode($"//x:ApplicationManifest/x:ServiceManifestImport/x:ServiceManifestRef[@ServiceManifestName='{cert.ServiceManifestName}']", appNsManager);
+                    if (serviceManifestNode == null)
                         continue;
 
                     var importNode = serviceManifestNode.ParentNode;
@@ -184,7 +170,7 @@ namespace SFPackager.Services
                 i++;
             }
 
-            var root = XmlHelper.GetNode("//x:ApplicationManifest", appDocument, appNsManager);
+            var root = appDocument.GetNode("//x:ApplicationManifest", appNsManager);
             root.AppendChild(certElement);
         }
     }

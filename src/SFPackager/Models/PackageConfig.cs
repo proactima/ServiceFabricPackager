@@ -7,6 +7,17 @@ namespace SFPackager.Models
         public List<HttpsConfig> Https { get; set; }
         public List<ExternalInclude> ExternalIncludes { get; set; }
         public ClusterConfig Cluster { get; set; }
+        public List<EndpointConfig> Endpoints { get; set; }
+    }
+
+    public class EndpointConfig
+    {
+        public string ApplicationTypeName { get; set; }
+        public string ServiceManifestName { get; set; }
+        public string EndpointName { get; set; }
+        public int Port { get; set; }
+        public string Protocol { get; set; }
+        public string Type { get; set; }
     }
 
     public class ExternalInclude

@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SFPackager.Helpers;
 using SFPackager.Interfaces;
 using SFPackager.Models;
 using SFPackager.Services;
+using SFPackager.Services.Manifest;
 
 namespace SFPackager
 {
