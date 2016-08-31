@@ -7,7 +7,6 @@ namespace SFPackager.Services.Manifest
         public XmlDocument GetFakeServiceManifest()
         {
             var document = new XmlDocument(new NameTable());
-            var nsManager = GetNsManager(document);
 
             var manifestElement = document.CreateElement("ServiceManifest", NamespaceString);
             var resourcesElement = document.CreateElement("Resources", NamespaceString);

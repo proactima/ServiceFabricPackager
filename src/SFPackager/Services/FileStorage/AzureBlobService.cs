@@ -196,7 +196,7 @@ namespace SFPackager.Services.FileStorage
                 AuthenticationHeaderValue.Parse($"SharedKey {_baseConfig.AzureStorageAccountName}:{signedHeader}");
         }
         
-        private void AppendIfEmpty(StringBuilder builder, int value)
+        private static void AppendIfEmpty(StringBuilder builder, int value)
         {
             builder.Append(value == 0 ? "\n" : $"{value}\n");
         }
