@@ -16,13 +16,7 @@ namespace SFPackager.Services.Cluster
 
         protected async Task<string> GetApplicationManifest(HttpClient httpClient, ServiceFabricApplication application)
         {
-            var uri = new UriBuilder
-            {
-                Scheme = "https",
-                Host = Hostname,
-                Port = Port,
-                Path = $"/ApplicationTypes/{application.TypeName}/$/GetApplicationManifest"
-            }.Uri.ToString();
+            var uri = CreateUri($"/ApplicationTypes/{application.TypeName}/$/GetApplicationManifest").ToString();
 
             var queryParams = new Dictionary<string, string>
             {
@@ -49,13 +43,7 @@ namespace SFPackager.Services.Cluster
 
         protected async Task<List<ServiceFabricApplication>> GetApplicationListAsync(HttpClient httpClient)
         {
-            var uri = new UriBuilder
-            {
-                Scheme = "https",
-                Host = Hostname,
-                Port = Port,
-                Path = "/Applications"
-            }.Uri.ToString();
+            var uri = CreateUri("/Applications").ToString();
 
             var queryParams = new Dictionary<string, string>
             {
@@ -77,6 +65,17 @@ namespace SFPackager.Services.Cluster
             }
 
             return new List<ServiceFabricApplication>();
+        }
+
+        private Uri CreateUri(string path)
+        {
+            return new UriBuilder
+            {
+                Scheme = "https",
+                Host = Hostname,
+                Port = Port,
+                Path = path
+            }.Uri;
         }
 
         private class TempManifest
