@@ -15,7 +15,7 @@ namespace SFPackager
 {
     public class App
     {
-        private readonly BaseConfig _baseConfig;
+        private readonly CmdLineOptions _baseConfig;
         private readonly IHandleFiles _blobService;
         private readonly IHandleClusterConnection _fabricRemote;
         private readonly ServiceHashCalculator _hasher;
@@ -36,7 +36,7 @@ namespace SFPackager
             VersionService versionService,
             Packager packager,
             ManifestWriter manifestWriter,
-            BaseConfig baseConfig)
+            CmdLineOptions baseConfig)
         {
             _blobService = blobService;
             _locator = locator;

@@ -8,6 +8,12 @@ namespace SFPackager
         PUT
     }
 
+    public enum StorageType
+    {
+        Azure,
+        Local
+    }
+
     public enum VersionType
     {
         Global,

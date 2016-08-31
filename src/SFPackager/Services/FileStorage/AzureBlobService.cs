@@ -13,9 +13,9 @@ namespace SFPackager.Services.FileStorage
 {
     public class AzureBlobService : IHandleFiles
     {
-        private readonly BaseConfig _baseConfig;
+        private readonly CmdLineOptions _baseConfig;
 
-        public AzureBlobService(BaseConfig baseConfig)
+        public AzureBlobService(CmdLineOptions baseConfig)
         {
             _baseConfig = baseConfig;
         }
@@ -59,7 +59,7 @@ namespace SFPackager.Services.FileStorage
             var sharedKey = CreateSharedKey( challengeString);
             var uri =
                 new Uri(
-                    $"https://{_baseConfig.AzureStorageAccountName}.blob.core.windows.net/{_baseConfig.AzureStorageContainerName}/{targetFilename}");
+                    $"https://{_baseConfig.AzureStorageAccountName}.blob.core.windows.net/{_baseConfig.AzureStorageAccountContainer}/{targetFilename}");
 
             var httpClient = new HttpClient();
             AddHeaders(httpClient, clientRequestId, requestTime, sharedKey, blobType);
@@ -114,7 +114,7 @@ namespace SFPackager.Services.FileStorage
             var sharedKey = CreateSharedKey(challengeString);
             var uri =
                 new Uri(
-                    $"https://{_baseConfig.AzureStorageAccountName}.blob.core.windows.net/{_baseConfig.AzureStorageContainerName}/{targetFilename}");
+                    $"https://{_baseConfig.AzureStorageAccountName}.blob.core.windows.net/{_baseConfig.AzureStorageAccountContainer}/{targetFilename}");
 
             var httpClient = new HttpClient();
             AddHeaders(httpClient, clientRequestId, requestTime, sharedKey, blobType);
@@ -158,7 +158,7 @@ namespace SFPackager.Services.FileStorage
             int contentLength, string fileName, bool isPut = false)
         {
             var canonicalizedResourceUri =
-                $"/{_baseConfig.AzureStorageAccountName}/{_baseConfig.AzureStorageContainerName}/{fileName}";
+                $"/{_baseConfig.AzureStorageAccountName}/{_baseConfig.AzureStorageAccountContainer}/{fileName}";
 
             var challengeString = new StringBuilder();
             challengeString.Append(verb.ToUpper() + "\n");

@@ -8,7 +8,7 @@ namespace SFPackager
 {
     public static class SimpleInjectorSetup
     {
-        public static Container Configure(BaseConfig baseConfig, PackageConfig packageConfig)
+        public static Container Configure(CmdLineOptions baseConfig, PackageConfig packageConfig)
         {
             var container = new Container();
 
@@ -32,7 +32,7 @@ namespace SFPackager
             container.RegisterSingleton(config);
         }
 
-        public static Container GetSetupContainer(BaseConfig baseConfig)
+        public static Container GetSetupContainer(CmdLineOptions baseConfig)
         {
             var container = new Container();
             container.Register<IHandleFiles, AzureBlobService>();

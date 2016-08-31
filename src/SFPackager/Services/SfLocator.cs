@@ -8,9 +8,9 @@ namespace SFPackager.Services
 {
     public class SfLocator
     {
-        private readonly BaseConfig _baseConfig;
+        private readonly CmdLineOptions _baseConfig;
 
-        public SfLocator(BaseConfig baseConfig)
+        public SfLocator(CmdLineOptions baseConfig)
         {
             _baseConfig = baseConfig;
         }

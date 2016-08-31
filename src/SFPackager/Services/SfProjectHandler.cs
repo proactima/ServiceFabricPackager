@@ -9,9 +9,9 @@ namespace SFPackager.Services
     public class SfProjectHandler
     {
         private readonly ManifestParser _appManifestHandler;
-        private readonly BaseConfig _baseConfig;
+        private readonly CmdLineOptions _baseConfig;
 
-        public SfProjectHandler(ManifestParser appManifestHandler, BaseConfig baseConfig)
+        public SfProjectHandler(ManifestParser appManifestHandler, CmdLineOptions baseConfig)
         {
             _appManifestHandler = appManifestHandler;
             _baseConfig = baseConfig;

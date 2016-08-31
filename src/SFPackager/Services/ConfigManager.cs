@@ -8,10 +8,10 @@ namespace SFPackager.Services
 {
     public class ConfigManager
     {
-        private readonly BaseConfig _baseConfig;
+        private readonly CmdLineOptions _baseConfig;
         private readonly IHandleFiles _blobService;
 
-        public ConfigManager(IHandleFiles blobService, BaseConfig baseConfig)
+        public ConfigManager(IHandleFiles blobService, CmdLineOptions baseConfig)
         {
             _blobService = blobService;
             _baseConfig = baseConfig;
@@ -21,7 +21,7 @@ namespace SFPackager.Services
         {
             Console.WriteLine("Loading config file...");
             var result = await _blobService
-                .GetFileAsStringAsync(_baseConfig.AzureStorageConfigFileName)
+                .GetFileAsStringAsync(_baseConfig.ConfigFileName)
                 .ConfigureAwait(false);
 
             var packageConfig = JsonConvert.DeserializeObject<PackageConfig>(result.ResponseContent);
