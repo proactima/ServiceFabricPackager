@@ -13,25 +13,27 @@ namespace SFPackager.Services.Cluster
     {
         private readonly IHandleFiles _blobService;
         private X509Certificate2 _cert;
+        private readonly PackageConfig _packageConfig;
 
-        public SecureClusterConnection(IHandleFiles blobService)
+        public SecureClusterConnection(IHandleFiles blobService, PackageConfig packageConfig)
         {
             _blobService = blobService;
+            _packageConfig = packageConfig;
         }
 
-        public async Task Init(ClusterConfig clusterConfig, BaseConfig buildConfig)
+        public async Task Init()
         {
-            Hostname = clusterConfig.Endpoint;
-            Port = clusterConfig.Port;
+            Hostname = _packageConfig.Cluster.Endpoint;
+            Port = _packageConfig.Cluster.Port;
 
             var pfxResponse = await _blobService
-                .GetFileAsBytesAsync(clusterConfig.PfxFile, buildConfig)
+                .GetFileAsBytesAsync(_packageConfig.Cluster.PfxFile)
                 .ConfigureAwait(false);
 
             if (!pfxResponse.IsSuccessful)
                 throw new InvalidOperationException("Problems loading cert file from blob...");
 
-            _cert = new X509Certificate2(pfxResponse.ResponseContent, clusterConfig.PfxKey);
+            _cert = new X509Certificate2(pfxResponse.ResponseContent, _packageConfig.Cluster.PfxKey);
         }
 
         public async Task<List<ServiceFabricApplication>> GetApplicationManifestsAsync()

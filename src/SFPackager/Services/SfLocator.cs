@@ -2,17 +2,23 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using SFPackager.Models;
 
 namespace SFPackager.Services
 {
     public class SfLocator
     {
-        public List<ServiceFabricApplicationProject> LocateSfApplications(string basePath, string buildConfiguration)
+        private readonly BaseConfig _baseConfig;
+
+        public SfLocator(BaseConfig baseConfig)
+        {
+            _baseConfig = baseConfig;
+        }
+
+        public List<ServiceFabricApplicationProject> LocateSfApplications()
         {
             Console.WriteLine("Locating ServiceFabric Applications.");
-            var directory = new DirectoryInfo(basePath);
+            var directory = new DirectoryInfo(_baseConfig.SourceBasePath);
             var fileList = directory.GetFiles("*.sfproj", SearchOption.AllDirectories);
 
             var applications = fileList
@@ -24,8 +30,8 @@ namespace SFPackager.Services
                     {
                         ProjectFile = fileInfo.Name,
                         ProjectFolder = fileInfo.Directory.FullName,
-                        BasePath = basePath,
-                        BuildConfiguration = buildConfiguration
+                        BasePath = _baseConfig.SourceBasePath,
+                        BuildConfiguration = _baseConfig.BuildConfiguration
                     };
                 })
                 .ToList();

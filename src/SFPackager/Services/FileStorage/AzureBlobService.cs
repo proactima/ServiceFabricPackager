@@ -13,26 +13,33 @@ namespace SFPackager.Services.FileStorage
 {
     public class AzureBlobService : IHandleFiles
     {
-        public async Task<Response<string>> GetFileAsStringAsync(string fileName, BaseConfig baseConfig)
+        private readonly BaseConfig _baseConfig;
+
+        public AzureBlobService(BaseConfig baseConfig)
         {
-            return await ExecuteFileOperationAsync(BlobOperation.GET, baseConfig, fileName)
+            _baseConfig = baseConfig;
+        }
+
+        public async Task<Response<string>> GetFileAsStringAsync(string fileName)
+        {
+            return await ExecuteFileOperationAsync(BlobOperation.GET, fileName)
                 .ConfigureAwait(false);
         }
 
-        public async Task<Response<byte[]>> GetFileAsBytesAsync(string fileName, BaseConfig baseConfig)
+        public async Task<Response<byte[]>> GetFileAsBytesAsync(string fileName)
         {
-            return await GetBytesFromBlob(baseConfig, fileName)
+            return await GetBytesFromBlob(fileName)
                 .ConfigureAwait(false);
         }
 
-        public async Task<Response<string>> SaveFileAsync(string fileName, string content, BaseConfig baseConfig)
+        public async Task<Response<string>> SaveFileAsync(string fileName, string content)
         {
-            return await ExecuteFileOperationAsync(BlobOperation.PUT, baseConfig, fileName, content)
+            return await ExecuteFileOperationAsync(BlobOperation.PUT, fileName, content)
                 .ConfigureAwait(false);
         }
 
         private async Task<Response<string>> ExecuteFileOperationAsync(BlobOperation operation,
-            BaseConfig baseConfig, string targetFilename, string payload = "")
+            string targetFilename, string payload = "")
         {
             var clientRequestId = Guid.NewGuid().ToString();
             var requestTime = DateTime.Now.ToString("R", CultureInfo.InvariantCulture);
@@ -47,15 +54,15 @@ namespace SFPackager.Services.FileStorage
                 contentLength = payload.Length;
             }
 
-            var challengeString = CreateChallengeString(verb, clientRequestId, requestTime, baseConfig, contentLength,
+            var challengeString = CreateChallengeString(verb, clientRequestId, requestTime, contentLength,
                 targetFilename, operation == BlobOperation.PUT);
-            var sharedKey = CreateSharedKey(baseConfig, challengeString);
+            var sharedKey = CreateSharedKey( challengeString);
             var uri =
                 new Uri(
-                    $"https://{baseConfig.AzureStorageAccountName}.blob.core.windows.net/{baseConfig.AzureStorageContainerName}/{targetFilename}");
+                    $"https://{_baseConfig.AzureStorageAccountName}.blob.core.windows.net/{_baseConfig.AzureStorageContainerName}/{targetFilename}");
 
             var httpClient = new HttpClient();
-            AddHeaders(httpClient, clientRequestId, requestTime, sharedKey, baseConfig, blobType);
+            AddHeaders(httpClient, clientRequestId, requestTime, sharedKey, blobType);
 
             try
             {
@@ -94,7 +101,7 @@ namespace SFPackager.Services.FileStorage
             };
         }
 
-        private async Task<Response<byte[]>> GetBytesFromBlob(BaseConfig baseConfig, string targetFilename)
+        private async Task<Response<byte[]>> GetBytesFromBlob(string targetFilename)
         {
             var clientRequestId = Guid.NewGuid().ToString();
             var requestTime = DateTime.Now.ToString("R", CultureInfo.InvariantCulture);
@@ -102,15 +109,15 @@ namespace SFPackager.Services.FileStorage
             var verb = Enum.GetName(typeof(BlobOperation), BlobOperation.GET);
             var contentLength = 0;
 
-            var challengeString = CreateChallengeString(verb, clientRequestId, requestTime, baseConfig, contentLength,
+            var challengeString = CreateChallengeString(verb, clientRequestId, requestTime, contentLength,
                 targetFilename);
-            var sharedKey = CreateSharedKey(baseConfig, challengeString);
+            var sharedKey = CreateSharedKey(challengeString);
             var uri =
                 new Uri(
-                    $"https://{baseConfig.AzureStorageAccountName}.blob.core.windows.net/{baseConfig.AzureStorageContainerName}/{targetFilename}");
+                    $"https://{_baseConfig.AzureStorageAccountName}.blob.core.windows.net/{_baseConfig.AzureStorageContainerName}/{targetFilename}");
 
             var httpClient = new HttpClient();
-            AddHeaders(httpClient, clientRequestId, requestTime, sharedKey, baseConfig, blobType);
+            AddHeaders(httpClient, clientRequestId, requestTime, sharedKey, blobType);
 
             try
             {
@@ -136,9 +143,9 @@ namespace SFPackager.Services.FileStorage
             };
         }
 
-        private string CreateSharedKey(BaseConfig baseConfig, string challengeString)
+        private string CreateSharedKey(string challengeString)
         {
-            var accessKey = Convert.FromBase64String(baseConfig.AzureStorageAccountKey);
+            var accessKey = Convert.FromBase64String(_baseConfig.AzureStorageAccountKey);
             var hasher = new HMACSHA256(accessKey);
 
             var hashed = hasher.ComputeHash(Encoding.UTF8.GetBytes(challengeString));
@@ -147,11 +154,11 @@ namespace SFPackager.Services.FileStorage
             return base64;
         }
 
-        private string CreateChallengeString(string verb, string requestId, string requestTime, BaseConfig baseConfig,
+        private string CreateChallengeString(string verb, string requestId, string requestTime,
             int contentLength, string fileName, bool isPut = false)
         {
             var canonicalizedResourceUri =
-                $"/{baseConfig.AzureStorageAccountName}/{baseConfig.AzureStorageContainerName}/{fileName}";
+                $"/{_baseConfig.AzureStorageAccountName}/{_baseConfig.AzureStorageContainerName}/{fileName}";
 
             var challengeString = new StringBuilder();
             challengeString.Append(verb.ToUpper() + "\n");
@@ -176,8 +183,8 @@ namespace SFPackager.Services.FileStorage
             return challengeString.ToString();
         }
 
-        private static void AddHeaders(HttpClient client, string clientRequestId, string requestTime,
-            string signedHeader, BaseConfig baseConfig, string blobType = "")
+        private void AddHeaders(HttpClient client, string clientRequestId, string requestTime,
+            string signedHeader, string blobType = "")
         {
             client.DefaultRequestHeaders.Add("x-ms-client-request-id", new[] {clientRequestId});
             client.DefaultRequestHeaders.Add("x-ms-date", new[] {requestTime});
@@ -186,75 +193,9 @@ namespace SFPackager.Services.FileStorage
                 client.DefaultRequestHeaders.Add("x-ms-blob-type", blobType);
 
             client.DefaultRequestHeaders.Authorization =
-                AuthenticationHeaderValue.Parse($"SharedKey {baseConfig.AzureStorageAccountName}:{signedHeader}");
+                AuthenticationHeaderValue.Parse($"SharedKey {_baseConfig.AzureStorageAccountName}:{signedHeader}");
         }
-
-        //public async Task<string> GetBlobAsync(Config config, string fileName)
-        //{
-        //    var clientRequestId = Guid.NewGuid().ToString();
-        //    var requestTime = DateTime.Now.ToString("R", CultureInfo.InvariantCulture);
-        //    var challengeString = CreateChallengeString("GET", clientRequestId, requestTime, config, 0, fileName, false);
-        //    var signedKey = CreateSharedKey(config, challengeString);
-
-        //    var httpClient = new HttpClient();
-        //    httpClient.DefaultRequestHeaders.Add("x-ms-client-request-id", new[] {clientRequestId});
-        //    httpClient.DefaultRequestHeaders.Add("x-ms-date", new[] {requestTime});
-        //    httpClient.DefaultRequestHeaders.Add("x-ms-version", "2015-07-08");
-        //    httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse($"SharedKey {config.AzureStorageAccountName}:{signedKey}");
-
-        //    var uri = new Uri($"https://{config.AzureStorageAccountName}.blob.core.windows.net/{config.AzureStorageContainerName}/{fileName}");
-
-        //    try
-        //    {
-        //        var response = await httpClient.GetAsync(uri).ConfigureAwait(false);
-        //        var result = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine(ex.Message);
-        //    }
-
-        //    return string.Empty;
-        //}
-
-        //public async Task SaveBlob(Config config, string fileName)
-        //{
-        //    var content = new StringContent(fileName);
-        //    var contentLength = fileName.Length;
-
-        //    var clientRequestId = Guid.NewGuid().ToString();
-        //    var requestTime = DateTime.Now.ToString("R", CultureInfo.InvariantCulture);
-
-        //    var challengeString = CreateChallengeString("PUT", clientRequestId, requestTime, config, contentLength, fileName, true);
-        //    var signedKey = CreateSharedKey(config, challengeString);
-
-        //    var httpClient = new HttpClient();
-        //    httpClient.DefaultRequestHeaders.Add("x-ms-client-request-id", new[] {clientRequestId});
-        //    httpClient.DefaultRequestHeaders.Add("x-ms-date", new[] {requestTime});
-        //    httpClient.DefaultRequestHeaders.Add("x-ms-version", "2015-07-08");
-        //    httpClient.DefaultRequestHeaders.Add("x-ms-blob-type", "BlockBlob");
-
-        //    httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse($"SharedKey {config.AzureStorageAccountName}:{signedKey}");
-
-        //    var uri = new Uri($"https://{config.AzureStorageAccountName}.blob.core.windows.net/{config.AzureStorageContainerName}/{fileName}");
-
-        //    try
-        //    {
-        //        var response = await httpClient.PutAsync(uri, content).ConfigureAwait(false);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine(ex.Message);
-        //    }
-        //}
-
-
-        //private void AppendIfEmpty(StringBuilder builder, string value)
-        //{
-        //    builder.Append(string.IsNullOrWhiteSpace(value) ? "\n" : $"{value}\n");
-        //}
-
+        
         private void AppendIfEmpty(StringBuilder builder, int value)
         {
             builder.Append(value == 0 ? "\n" : $"{value}\n");

@@ -7,7 +7,7 @@ namespace SFPackager.Interfaces
 {
     public interface IHandleClusterConnection
     {
-        Task Init(ClusterConfig clusterConfig, BaseConfig buildConfig);
+        Task Init();
         Task<List<ServiceFabricApplication>> GetApplicationManifestsAsync();
     }
 }

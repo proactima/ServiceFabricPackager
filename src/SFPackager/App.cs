@@ -6,21 +6,21 @@ using SFPackager.Helpers;
 using SFPackager.Interfaces;
 using SFPackager.Models;
 using SFPackager.Services;
-using SFPackager.Services.FileStorage;
 
 namespace SFPackager
 {
     public class App
     {
+        private readonly BaseConfig _baseConfig;
         private readonly IHandleFiles _blobService;
         private readonly IHandleClusterConnection _fabricRemote;
         private readonly ServiceHashCalculator _hasher;
         private readonly SfLocator _locator;
+        private readonly ManifestWriter _manifestWriter;
+        private readonly Packager _packager;
         private readonly SfProjectHandler _projectHandler;
         private readonly VersionHandler _versionHandler;
         private readonly VersionService _versionService;
-        private readonly Packager _packager;
-        private readonly ManifestWriter _manifestWriter;
 
         public App(
             IHandleFiles blobService,
@@ -31,7 +31,8 @@ namespace SFPackager
             VersionHandler versionHandler,
             VersionService versionService,
             Packager packager,
-            ManifestWriter manifestWriter)
+            ManifestWriter manifestWriter,
+            BaseConfig baseConfig)
         {
             _blobService = blobService;
             _locator = locator;
@@ -42,26 +43,18 @@ namespace SFPackager
             _versionService = versionService;
             _packager = packager;
             _manifestWriter = manifestWriter;
+            _baseConfig = baseConfig;
         }
 
-        public async Task RunAsync(BaseConfig baseConfig)
+        public async Task RunAsync()
         {
-            Console.WriteLine("Loading config file...");
-            var result = await _blobService
-                .GetFileAsStringAsync(baseConfig.AzureStorageConfigFileName, baseConfig)
-                .ConfigureAwait(false);
-            
-            var packageConfig = JsonConvert.DeserializeObject<PackageConfig>(result.ResponseContent);
-
-            
-            var sfApplications = _locator.LocateSfApplications(baseConfig.SourceBasePath, baseConfig.BuildConfiguration);
-
-            await _fabricRemote.Init(packageConfig.Cluster, baseConfig).ConfigureAwait(false);
+            var sfApplications = _locator.LocateSfApplications();
+            await _fabricRemote.Init().ConfigureAwait(false);
 
             Console.WriteLine("Trying to read app manifest from deployed applications...");
             var deployedApps = await _fabricRemote.GetApplicationManifestsAsync().ConfigureAwait(false);
             var currentVersion = _versionHandler.GetCurrentVersionFromApplications(deployedApps);
-            var newVersion = currentVersion.Increment(baseConfig.CommitHash);
+            var newVersion = currentVersion.Increment(_baseConfig.CommitHash);
 
             Console.WriteLine($"New version is: {newVersion}");
 
@@ -76,7 +69,7 @@ namespace SFPackager
 
             Console.WriteLine($"Loading version manifest for {currentVersion}");
             var currentHashMapResponse = await _blobService
-                .GetFileAsStringAsync(currentVersion.FileName, baseConfig)
+                .GetFileAsStringAsync(currentVersion.FileName)
                 .ConfigureAwait(false);
 
             var parsedApplications = new Dictionary<string, ServiceFabricApplicationProject>();
@@ -84,7 +77,7 @@ namespace SFPackager
             Console.WriteLine("Parsing Service Fabric Applications and computing hashes");
             foreach (var sfApplication in sfApplications)
             {
-                var project = _projectHandler.Parse(sfApplication, baseConfig.SourceBasePath, baseConfig);
+                var project = _projectHandler.Parse(sfApplication, _baseConfig.SourceBasePath);
                 parsedApplications.Add(project.ApplicationTypeName, project);
                 var serviceVersions = _hasher.Calculate(project);
 
@@ -109,16 +102,18 @@ namespace SFPackager
             }
 
             Console.WriteLine("Packaging applications");
-            await _packager.PackageApplications(versions, parsedApplications, packageConfig, baseConfig).ConfigureAwait(false);
+            await _packager
+                .PackageApplications(versions, parsedApplications)
+                .ConfigureAwait(false);
 
             Console.WriteLine("Updating manifests");
-            _manifestWriter.UpdateManifests(versions, parsedApplications, packageConfig);
+            _manifestWriter.UpdateManifests(versions, parsedApplications);
 
             Console.WriteLine($"Storing version map for {newVersion}");
             var versionJson = JsonConvert.SerializeObject(versions);
             var fileName = versions[Constants.GlobalIdentifier].Version.FileName;
             await _blobService
-                .SaveFileAsync(fileName, versionJson, baseConfig)
+                .SaveFileAsync(fileName, versionJson)
                 .ConfigureAwait(false);
         }
     }

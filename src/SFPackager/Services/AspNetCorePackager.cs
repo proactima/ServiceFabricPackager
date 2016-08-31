@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SFPackager.Services
 {
@@ -13,7 +10,8 @@ namespace SFPackager.Services
             projectFolder = projectFolder.TrimEnd('\\');
             var processInfo = new ProcessStartInfo
             {
-                Arguments = $"publish \"{projectFolder}\" --output \"{codeTargetFolder}\" --configuration {configuration} --no-build",
+                Arguments =
+                    $"publish \"{projectFolder}\" --output \"{codeTargetFolder}\" --configuration {configuration} --no-build",
                 FileName = "dotnet.exe",
                 CreateNoWindow = false,
                 UseShellExecute = false,
