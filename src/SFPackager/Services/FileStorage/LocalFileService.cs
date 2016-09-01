@@ -10,19 +10,28 @@ namespace SFPackager.Services.FileStorage
 {
     public class LocalFileService : IHandleFiles
     {
+        private readonly CmdLineOptions _baseConfig;
+
+        public LocalFileService(CmdLineOptions baseConfig)
+        {
+            _baseConfig = baseConfig;
+        }
+
         public Task<Response<string>> GetFileAsStringAsync(string fileName)
         {
+            var filePath = $"{_baseConfig.LocalConfigFolder}\\{fileName}";
+
             try
             {
-                if (!File.Exists(fileName))
+                if (!File.Exists(filePath))
                     return Task.FromResult(new Response<string>
                     {
                         Operation = BlobOperation.GET,
-                        ErrorMessage = $"File does not exist: {fileName}",
+                        ErrorMessage = $"File does not exist: {filePath}",
                         StatusCode = HttpStatusCode.NotFound
                     });
 
-                var fileContent = File.ReadAllText(fileName);
+                var fileContent = File.ReadAllText(filePath);
                 return Task.FromResult(new Response<string>
                 {
                     Operation = BlobOperation.GET,
@@ -43,17 +52,19 @@ namespace SFPackager.Services.FileStorage
 
         public Task<Response<byte[]>> GetFileAsBytesAsync(string fileName)
         {
+            var filePath = $"{_baseConfig.LocalConfigFolder}\\{fileName}";
+
             try
             {
-                if (!File.Exists(fileName))
+                if (!File.Exists(filePath))
                     return Task.FromResult(new Response<byte[]>
                     {
                         Operation = BlobOperation.GET,
-                        ErrorMessage = $"File does not exist: {fileName}",
+                        ErrorMessage = $"File does not exist: {filePath}",
                         StatusCode = HttpStatusCode.NotFound
                     });
 
-                var fileContent = File.ReadAllBytes(fileName);
+                var fileContent = File.ReadAllBytes(filePath);
                 return Task.FromResult(new Response<byte[]>
                 {
                     Operation = BlobOperation.GET,
@@ -74,9 +85,11 @@ namespace SFPackager.Services.FileStorage
 
         public Task<Response<string>> SaveFileAsync(string fileName, string content)
         {
+            var filePath = $"{_baseConfig.LocalConfigFolder}\\{fileName}";
+
             try
             {
-                File.WriteAllText(fileName, content, Encoding.UTF8);
+                File.WriteAllText(filePath, content, Encoding.UTF8);
                 return Task.FromResult(new Response<string>
                 {
                     Operation = BlobOperation.PUT,

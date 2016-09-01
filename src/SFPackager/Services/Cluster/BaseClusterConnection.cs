@@ -13,6 +13,7 @@ namespace SFPackager.Services.Cluster
         protected const string ApiVersion = "1.0";
         protected string Hostname;
         protected int Port;
+        protected string Scheme;
         
         protected async Task<string> GetApplicationManifest(HttpClient httpClient, ServiceFabricApplication application)
         {
@@ -71,7 +72,7 @@ namespace SFPackager.Services.Cluster
         {
             return new UriBuilder
             {
-                Scheme = "https",
+                Scheme = Scheme,
                 Host = Hostname,
                 Port = Port,
                 Path = path

@@ -25,6 +25,7 @@ namespace SFPackager.Services.Cluster
         {
             Hostname = _packageConfig.Cluster.Endpoint;
             Port = _packageConfig.Cluster.Port;
+            Scheme = "https";
 
             var pfxResponse = await _blobService
                 .GetFileAsBytesAsync(_packageConfig.Cluster.PfxFile)

@@ -20,6 +20,7 @@ namespace SFPackager.Services.Cluster
         {
             Hostname = _packageConfig.Cluster.Endpoint;
             Port = _packageConfig.Cluster.Port;
+            Scheme = "http";
 
             return Task.FromResult(0);
         }
