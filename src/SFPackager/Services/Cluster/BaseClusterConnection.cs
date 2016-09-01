@@ -13,7 +13,7 @@ namespace SFPackager.Services.Cluster
         protected const string ApiVersion = "1.0";
         protected string Hostname;
         protected int Port;
-
+        
         protected async Task<string> GetApplicationManifest(HttpClient httpClient, ServiceFabricApplication application)
         {
             var uri = CreateUri($"/ApplicationTypes/{application.TypeName}/$/GetApplicationManifest").ToString();

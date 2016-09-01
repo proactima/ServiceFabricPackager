@@ -4,7 +4,7 @@ using CommandLineParser.Validation;
 namespace SFPackager.Models
 {
     [ArgumentGroupCertification("a,l", EArgumentGroupCondition.ExactlyOneUsed)]
-    [DistinctGroupsCertification("n,k,c","f")]
+    [DistinctGroupsCertification("n,k,c","p")]
     public class CmdLineOptions
     {
         [SwitchArgument('a', "azure", false, Description = "Use Azure Blob as backing store")]
@@ -25,7 +25,7 @@ namespace SFPackager.Models
         [ValueArgument(typeof(string), 'p', "localfolder", Description = "Local config folder fullpath")]
         public string LocalConfigFolder { get; set; }
 
-        [ValueArgument(typeof(string), 'c', "configfilename", Description = "Config file to use", Optional = false)]
+        [ValueArgument(typeof(string), 'f', "configfilename", Description = "Config file to use", Optional = false)]
         public string ConfigFileName { get; set; }
 
         [ValueArgument(typeof(string), 's', "sourcepath", Description = "Path to source folder", Optional = false)]

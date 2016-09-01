@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using SFPackager.Interfaces;
 using SFPackager.Models;
 using SFPackager.Services;
 
@@ -14,7 +12,7 @@ namespace SFPackager
             var parser = new CommandLineParser.CommandLineParser();
             var target = new CmdLineOptions();
             parser.ExtractArgumentAttributes(target);
-            
+
             try
             {
                 parser.ParseCommandLine(args);
@@ -45,7 +43,7 @@ namespace SFPackager
             var packageConfig = await configManager.GetPackageConfig().ConfigureAwait(false);
 
             var container = SimpleInjectorSetup.Configure(baseConfig, packageConfig);
-            
+
             try
             {
                 var app = container.GetInstance<App>();
