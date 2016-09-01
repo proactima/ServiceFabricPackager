@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml;
 using SFPackager.Helpers;
 using SFPackager.Models;
+using SFPackager.Services.Manifest;
 
 namespace SFPackager.Services
 {
@@ -12,10 +13,12 @@ namespace SFPackager.Services
     {
         private const string NamespaceString = "http://schemas.microsoft.com/2011/01/fabric";
         private readonly PackageConfig _packageConfig;
+        private readonly CertificateAppender _certAppender;
 
-        public ManifestWriter(PackageConfig packageConfig)
+        public ManifestWriter(PackageConfig packageConfig, CertificateAppender certAppender)
         {
             _packageConfig = packageConfig;
+            _certAppender = certAppender;
         }
 
         public void UpdateManifests(
@@ -39,16 +42,8 @@ namespace SFPackager.Services
                 appNsManager.AddNamespace("x", NamespaceString);
 
                 appDocument.SetSingleValue("//x:ApplicationManifest/@ApplicationTypeVersion", app.Value.Version.ToString(), appNsManager);
-                appDocument.RemoveNodes("//x:ApplicationManifest/x:Parameters", "/x:Parameter", appNsManager);
-                appDocument.RemoveNodes("//x:ApplicationManifest/x:DefaultServices", "/x:Service", appNsManager);
-                // Add certificates stuff here
-
-                var httpsCerts = _packageConfig.Https
-                    .Where(x => x.ApplicationTypeName.Equals(appData.ApplicationTypeName))
-                    .ToList();
-
-                if (httpsCerts.Any())
-                    AddCertificatesToAppManifest(httpsCerts, appDocument, NamespaceString, appNsManager);
+                //appDocument.RemoveNodes("//x:ApplicationManifest/x:Parameters", "/x:Parameter", appNsManager);
+                //appDocument.RemoveNodes("//x:ApplicationManifest/x:DefaultServices", "/x:Service", appNsManager);
 
                 var serviceNodes = appDocument.GetNodes("//x:ApplicationManifest/x:ServiceManifestImport/x:ServiceManifestRef", appNsManager);
 
@@ -65,6 +60,8 @@ namespace SFPackager.Services
                     var serviceVersion = versions[serviceName].Version;
                     serviceElement.SetAttribute("ServiceManifestVersion", serviceVersion.ToString());
                 }
+
+                _certAppender.SetCertificates(appDocument, appData.ApplicationTypeName, new List<string>());
 
                 using (var outStream = new FileStream(packagedAppManifest, FileMode.Truncate))
                 {
@@ -126,52 +123,6 @@ namespace SFPackager.Services
                     }
                 }
             }
-        }
-
-        private void AddCertificatesToAppManifest(
-            IEnumerable<HttpsConfig> httpsCerts,
-            XmlDocument appDocument,
-            string namespaceString,
-            XmlNamespaceManager appNsManager)
-        {
-            var i = 0;
-            var certElement = appDocument.CreateElement("Certificates", namespaceString);
-            var distinctThumbprints = httpsCerts.GroupBy(x => x.CertThumbprint);
-
-            foreach (var certGroup in distinctThumbprints)
-            {
-                if (!certGroup.Any())
-                    continue;
-
-                var certificate = certGroup.First();
-                var certName = $"Certificate{i}";
-
-                var endpointElement = appDocument.CreateElement("EndpointCertificate", namespaceString);
-                endpointElement.SetAttribute("X509FindValue", certificate.CertThumbprint);
-                endpointElement.SetAttribute("Name", certName);
-                certElement.AppendChild(endpointElement);
-
-                foreach (var cert in certGroup)
-                {
-                    var serviceManifestNode =
-                        appDocument.GetNode($"//x:ApplicationManifest/x:ServiceManifestImport/x:ServiceManifestRef[@ServiceManifestName='{cert.ServiceManifestName}']", appNsManager);
-                    if (serviceManifestNode == null)
-                        continue;
-
-                    var importNode = serviceManifestNode.ParentNode;
-                    var policyNode = appDocument.CreateElement("Policies", namespaceString);
-                    var bindingNode = appDocument.CreateElement("EndpointBindingPolicy", namespaceString);
-                    bindingNode.SetAttribute("EndpointRef", cert.EndpointName);
-                    bindingNode.SetAttribute("CertificateRef", certName);
-                    policyNode.AppendChild(bindingNode);
-                    importNode.AppendChild(policyNode);
-                }
-
-                i++;
-            }
-
-            var root = appDocument.GetNode("//x:ApplicationManifest", appNsManager);
-            root.AppendChild(certElement);
         }
     }
 }

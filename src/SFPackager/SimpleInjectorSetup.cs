@@ -12,8 +12,11 @@ namespace SFPackager
         {
             var container = new Container();
 
-            container.Register<IHandleFiles, AzureBlobService>();
-            
+            if (baseConfig.UseAzureStorage)
+                container.Register<IHandleFiles, AzureBlobService>();
+            if (baseConfig.UseLocalStorage)
+                container.Register<IHandleFiles, LocalFileService>();
+
             if (baseConfig.UseSecureCluster)
                 container.Register<IHandleClusterConnection, SecureClusterConnection>();
             else
@@ -35,7 +38,12 @@ namespace SFPackager
         public static Container GetSetupContainer(CmdLineOptions baseConfig)
         {
             var container = new Container();
-            container.Register<IHandleFiles, AzureBlobService>();
+
+            if (baseConfig.UseAzureStorage)
+                container.Register<IHandleFiles, AzureBlobService>();
+            if(baseConfig.UseLocalStorage)
+                container.Register<IHandleFiles, LocalFileService>();
+
             container.RegisterSingleton(baseConfig);
 
             return container;

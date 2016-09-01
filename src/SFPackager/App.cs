@@ -57,7 +57,8 @@ namespace SFPackager
 
             Console.WriteLine("Trying to read app manifest from deployed applications...");
             var deployedApps = await _fabricRemote.GetApplicationManifestsAsync().ConfigureAwait(false);
-            var currentVersion = _versionHandler.GetCurrentVersionFromApplications(deployedApps);
+            //var currentVersion = _versionHandler.GetCurrentVersionFromApplications(deployedApps);
+            var currentVersion = VersionNumber.Create(1, "908bb4dd64");
             var newVersion = currentVersion.Increment(_baseConfig.CommitHash);
 
             Console.WriteLine($"New version is: {newVersion}");

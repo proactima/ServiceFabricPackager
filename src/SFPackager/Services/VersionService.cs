@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using SFPackager.Helpers;
 using SFPackager.Models;
 
 namespace SFPackager.Services
@@ -28,38 +29,57 @@ namespace SFPackager.Services
 
         public void SetVersionsIfVersionIsDeployed(
             Response<string> currentHashMapResponse,
-            Dictionary<string, GlobalVersion> versions,
+            Dictionary<string, GlobalVersion> packagedVersionMap,
             VersionNumber newVersion)
         {
-            var versionMap = JsonConvert.DeserializeObject<Dictionary<string, GlobalVersion>>
+            var currentVersionMap = JsonConvert.DeserializeObject<Dictionary<string, GlobalVersion>>
                 (currentHashMapResponse.ResponseContent);
 
-            var things = versions
+            packagedVersionMap
                 .Where(x => x.Value.VersionType == VersionType.ServicePackage)
-                .Where(v => !v.Value.Hash.Equals(versionMap[v.Key].Hash));
-
-            foreach (var v in things)
-            {
-                SetVersionOnPackage(v, newVersion, versions);
-            }
-
-            foreach (var globalVersion in versions.Where(x => !x.Value.IncludeInPackage))
-            {
-                if (versionMap.ContainsKey(globalVersion.Key))
+                .Where(v => !v.Value.Hash.Equals(currentVersionMap[v.Key].Hash))
+                .ForEach(s =>
                 {
-                    globalVersion.Value.Version = versionMap[globalVersion.Key].Version;
+                    SetVersionOnPackage(s, newVersion, packagedVersionMap);
+                });
+            
+            packagedVersionMap
+                .Where(x => x.Value.VersionType == VersionType.Service)
+                .Where(x => !x.Value.Hash.Equals(currentVersionMap[x.Key].Hash))
+                .ForEach(s =>
+            {
+                s.Value.Version = newVersion;
+                s.Value.IncludeInPackage = true;
+                packagedVersionMap[s.Value.ParentRef].Version = newVersion;
+                packagedVersionMap[s.Value.ParentRef].IncludeInPackage = true;
+            });
+
+            packagedVersionMap
+                .Where(x => x.Value.VersionType == VersionType.Application)
+                .Where(x => !x.Value.Hash.Equals(currentVersionMap[x.Key].Hash))
+                .ForEach(s =>
+                {
+                    s.Value.Version = newVersion;
+                    s.Value.IncludeInPackage = true;
+                });
+
+            foreach (var globalVersion in packagedVersionMap.Where(x => !x.Value.IncludeInPackage))
+            {
+                if (currentVersionMap.ContainsKey(globalVersion.Key))
+                {
+                    globalVersion.Value.Version = currentVersionMap[globalVersion.Key].Version;
                 }
                 else
                 {
                     if (globalVersion.Value.VersionType != VersionType.ServicePackage)
                         continue;
 
-                    SetVersionOnPackage(globalVersion, newVersion, versions);
+                    SetVersionOnPackage(globalVersion, newVersion, packagedVersionMap);
                 }
             }
 
-            if (versions.Any(x => x.Value.IncludeInPackage))
-                versions[Constants.GlobalIdentifier].Version = newVersion;
+            if (packagedVersionMap.Any(x => x.Value.IncludeInPackage))
+                packagedVersionMap[Constants.GlobalIdentifier].Version = newVersion;
         }
 
         private static void SetVersionOnPackage(
