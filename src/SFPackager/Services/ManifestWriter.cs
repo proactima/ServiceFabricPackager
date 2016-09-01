@@ -12,13 +12,13 @@ namespace SFPackager.Services
     public class ManifestWriter
     {
         private const string NamespaceString = "http://schemas.microsoft.com/2011/01/fabric";
-        private readonly PackageConfig _packageConfig;
         private readonly CertificateAppender _certAppender;
+        private readonly ServiceImportMutator _serviceImport;
 
-        public ManifestWriter(PackageConfig packageConfig, CertificateAppender certAppender)
+        public ManifestWriter(CertificateAppender certAppender, ServiceImportMutator serviceImport)
         {
-            _packageConfig = packageConfig;
             _certAppender = certAppender;
+            _serviceImport = serviceImport;
         }
 
         public void UpdateManifests(
@@ -41,27 +41,11 @@ namespace SFPackager.Services
                 var appNsManager = new XmlNamespaceManager(appDocument.NameTable);
                 appNsManager.AddNamespace("x", NamespaceString);
 
-                appDocument.SetSingleValue("//x:ApplicationManifest/@ApplicationTypeVersion", app.Value.Version.ToString(), appNsManager);
-                //appDocument.RemoveNodes("//x:ApplicationManifest/x:Parameters", "/x:Parameter", appNsManager);
-                //appDocument.RemoveNodes("//x:ApplicationManifest/x:DefaultServices", "/x:Service", appNsManager);
-
-                var serviceNodes = appDocument.GetNodes("//x:ApplicationManifest/x:ServiceManifestImport/x:ServiceManifestRef", appNsManager);
-
-                foreach (var service in serviceNodes)
-                {
-                    var serviceElement = service as XmlElement;
-                    if (serviceElement == null)
-                        continue;
-
-                    var serviceName = serviceElement.GetAttribute("ServiceManifestName");
-                    if (!versions.ContainsKey(serviceName))
-                        continue;
-
-                    var serviceVersion = versions[serviceName].Version;
-                    serviceElement.SetAttribute("ServiceManifestVersion", serviceVersion.ToString());
-                }
-
-                _certAppender.SetCertificates(appDocument, appData.ApplicationTypeName, new List<string>());
+                appDocument.SetSingleValue("//x:ApplicationManifest/@ApplicationTypeVersion",
+                    app.Value.Version.ToString(), appNsManager);
+                var serviceNames = appData.Services.Select(x => x.Key).ToList();
+                _serviceImport.Execute(appDocument, versions);
+                _certAppender.SetCertificates(appDocument, appData.ApplicationTypeName, serviceNames);
 
                 using (var outStream = new FileStream(packagedAppManifest, FileMode.Truncate))
                 {
@@ -85,7 +69,8 @@ namespace SFPackager.Services
                     var serviceNsManager = new XmlNamespaceManager(serviceDocument.NameTable);
                     serviceNsManager.AddNamespace("x", NamespaceString);
 
-                    serviceDocument.SetSingleValue("//x:ServiceManifest/@Version", service.Value.Version.ToString(), serviceNsManager);
+                    serviceDocument.SetSingleValue("//x:ServiceManifest/@Version", service.Value.Version.ToString(),
+                        serviceNsManager);
 
                     var subPackages = versions
                         .Where(x => x.Value.ParentRef.Equals(service.Key))
@@ -113,7 +98,8 @@ namespace SFPackager.Services
                                 throw new ArgumentOutOfRangeException();
                         }
 
-                        var node = serviceDocument.GetNode($"//x:ServiceManifest/x:{nodeName}[@Name='{packageName}']", serviceNsManager);
+                        var node = serviceDocument.GetNode($"//x:ServiceManifest/x:{nodeName}[@Name='{packageName}']",
+                            serviceNsManager);
                         node.Attributes["Version"].Value = package.Value.Version.ToString();
                     }
 
