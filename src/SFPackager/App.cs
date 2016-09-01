@@ -83,7 +83,7 @@ namespace SFPackager
             {
                 var project = _projectHandler.Parse(sfApplication, _baseConfig.SourceBasePath);
                 parsedApplications.Add(project.ApplicationTypeName, project);
-                var serviceVersions = _hasher.Calculate(project);
+                var serviceVersions = _hasher.Calculate(project, currentVersion);
 
                 versions.Add(project.ApplicationTypeName, new GlobalVersion
                 {
@@ -91,7 +91,10 @@ namespace SFPackager
                     Version = currentVersion
                 });
 
-                serviceVersions.ForEach(x => { versions.Add(x.Key, x.Value); });
+                serviceVersions.ForEach(service =>
+                {
+                    versions.Add(service.Key, service.Value);
+                });
             }
 
             if (!currentHashMapResponse.IsSuccessful)

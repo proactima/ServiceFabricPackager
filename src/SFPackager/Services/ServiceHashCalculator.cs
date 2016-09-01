@@ -15,21 +15,24 @@ namespace SFPackager.Services
 
         private readonly FakeManifestCreator _manifestCreator;
         private readonly EndpointAppender _endpointAppender;
+        private readonly CertificateAppender _certificateAppender;
 
         public ServiceHashCalculator(
             PackageConfig packageConfig,
             EndpointAppender endpointAppender,
-            FakeManifestCreator manifestCreator)
+            FakeManifestCreator manifestCreator,
+            CertificateAppender certificateAppender)
         {
             _packageConfig = packageConfig;
             _endpointAppender = endpointAppender;
             _manifestCreator = manifestCreator;
+            _certificateAppender = certificateAppender;
         }
 
-        public Dictionary<string, GlobalVersion> Calculate(ServiceFabricApplicationProject project)
+        public Dictionary<string, GlobalVersion> Calculate(ServiceFabricApplicationProject project, VersionNumber currentVersion)
         {
             var projectHashes = new Dictionary<string, GlobalVersion>();
-            
+
             foreach (var service in project.Services)
             {
                 foreach (var subPackage in service.Value.SubPackages)
@@ -86,13 +89,22 @@ namespace SFPackager.Services
                 });
             }
 
+            var serviceNames = project.Services.Select(x => x.Key).ToList();
+            var fakeApplicationManifest = _manifestCreator.GetFakeApplicationManifest(serviceNames);
+            _certificateAppender.SetCertificates(fakeApplicationManifest, project.ApplicationTypeName, serviceNames);
+
+            projectHashes.Add(project.ApplicationTypeName, new GlobalVersion
+            {
+                VersionType = VersionType.Application,
+                Version = currentVersion,
+                Hash = HashXmlDocument(fakeApplicationManifest)
+            });
+
             return projectHashes;
         }
 
         private static string HashXmlDocument(XmlDocument document)
         {
-            string hash;
-
             using (var ms = new MemoryStream())
             {
                 document.Save(ms);
@@ -101,20 +113,12 @@ namespace SFPackager.Services
                 var buffer = new byte[streamLength];
                 ms.Read(buffer, 0, streamLength);
 
-                var hasher = SHA256.Create();
-                var rawHash = hasher.ComputeHash(buffer);
-                hash = BitConverter.ToString(rawHash).Replace("-", "").ToLowerInvariant();
+                using (var hasher = SHA256.Create())
+                {
+                    var rawHash = hasher.ComputeHash(buffer);
+                    return BitConverter.ToString(rawHash).Replace("-", "").ToLowerInvariant();
+                }
             }
-
-            return hash;
-        }
-
-        public string HashServiceManifestChanges()
-        {
-            var a = SHA256.Create();
-            
-
-            return String.Empty;
         }
     }
 }
