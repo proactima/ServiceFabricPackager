@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Security.Cryptography;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SFPackager.Helpers;
 using SFPackager.Interfaces;
 using SFPackager.Models;
 using SFPackager.Services;
-using SFPackager.Services.Manifest;
 
 namespace SFPackager
 {
@@ -57,8 +53,7 @@ namespace SFPackager
 
             Console.WriteLine("Trying to read app manifest from deployed applications...");
             var deployedApps = await _fabricRemote.GetApplicationManifestsAsync().ConfigureAwait(false);
-            //var currentVersion = _versionHandler.GetCurrentVersionFromApplications(deployedApps);
-            var currentVersion = VersionNumber.Create(1, "908bb4dd64");
+            var currentVersion = _versionHandler.GetCurrentVersionFromApplications(deployedApps);
             var newVersion = currentVersion.Increment(_baseConfig.CommitHash);
 
             Console.WriteLine($"New version is: {newVersion}");
@@ -86,10 +81,7 @@ namespace SFPackager
                 parsedApplications.Add(project.ApplicationTypeName, project);
                 var serviceVersions = _hasher.Calculate(project, currentVersion);
 
-                serviceVersions.ForEach(service =>
-                {
-                    versions.Add(service.Key, service.Value);
-                });
+                serviceVersions.ForEach(service => { versions.Add(service.Key, service.Value); });
             }
 
             if (_baseConfig.ForcePackageAll || !currentHashMapResponse.IsSuccessful)
