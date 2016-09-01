@@ -85,21 +85,15 @@ namespace SFPackager
                 parsedApplications.Add(project.ApplicationTypeName, project);
                 var serviceVersions = _hasher.Calculate(project, currentVersion);
 
-                versions.Add(project.ApplicationTypeName, new GlobalVersion
-                {
-                    VersionType = VersionType.Application,
-                    Version = currentVersion
-                });
-
                 serviceVersions.ForEach(service =>
                 {
                     versions.Add(service.Key, service.Value);
                 });
             }
 
-            if (!currentHashMapResponse.IsSuccessful)
+            if (_baseConfig.ForcePackageAll || !currentHashMapResponse.IsSuccessful)
             {
-                Console.WriteLine($"No remote version map found, setting everything to {newVersion}");
+                Console.WriteLine($"Force package all, setting everything to {newVersion}");
                 _versionService.SetVersionIfNoneIsDeployed(versions, newVersion);
             }
             else

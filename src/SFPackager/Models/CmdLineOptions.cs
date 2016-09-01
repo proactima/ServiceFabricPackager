@@ -39,5 +39,8 @@ namespace SFPackager.Models
 
         [SwitchArgument('e', "secure", false, Description = "Cluster is secure")]
         public bool UseSecureCluster { get; set; }
+
+        [SwitchArgument('f', "forceall", false, Description = "Force package all items")]
+        public bool ForcePackageAll { get; set; }
     }
 }
