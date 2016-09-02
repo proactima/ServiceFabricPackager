@@ -24,6 +24,9 @@ namespace SFPackager.Services.Manifest
                 .Where(x => x.ServiceManifestName.Equals(serviceManifestName))
                 .ToList();
 
+            if(!endpoints.Any())
+                return;
+
             document.RemoveNodes("//x:ServiceManifest/x:Resources/x:Endpoints", "/x:Endpoint", nsManager);
 
             var endpointsNode = document.GetNode("//x:ServiceManifest/x:Resources/x:Endpoints", nsManager);
