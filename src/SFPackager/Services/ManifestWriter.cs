@@ -14,11 +14,15 @@ namespace SFPackager.Services
         private const string NamespaceString = "http://schemas.microsoft.com/2011/01/fabric";
         private readonly CertificateAppender _certAppender;
         private readonly ServiceImportMutator _serviceImport;
+        private readonly EndpointAppender _endpointAppender;
+        private readonly AppManifestCleaner _appManifestCleaner;
 
-        public ManifestWriter(CertificateAppender certAppender, ServiceImportMutator serviceImport)
+        public ManifestWriter(CertificateAppender certAppender, ServiceImportMutator serviceImport, EndpointAppender endpointAppender, AppManifestCleaner appManifestCleaner)
         {
             _certAppender = certAppender;
             _serviceImport = serviceImport;
+            _endpointAppender = endpointAppender;
+            _appManifestCleaner = appManifestCleaner;
         }
 
         public void UpdateManifests(
@@ -44,8 +48,10 @@ namespace SFPackager.Services
                 appDocument.SetSingleValue("//x:ApplicationManifest/@ApplicationTypeVersion",
                     app.Value.Version.ToString(), appNsManager);
                 var serviceNames = appData.Services.Select(x => x.Key).ToList();
+
                 _serviceImport.Execute(appDocument, versions);
                 _certAppender.SetCertificates(appDocument, appData.ApplicationTypeName, serviceNames);
+                _appManifestCleaner.Execute(appDocument);
 
                 using (var outStream = new FileStream(packagedAppManifest, FileMode.Truncate))
                 {
@@ -71,6 +77,8 @@ namespace SFPackager.Services
 
                     serviceDocument.SetSingleValue("//x:ServiceManifest/@Version", service.Value.Version.ToString(),
                         serviceNsManager);
+
+                    _endpointAppender.SetEndpoints(serviceDocument, appData.ApplicationTypeName, serviceData.ServiceName);
 
                     var subPackages = versions
                         .Where(x => x.Value.ParentRef.Equals(service.Key))
