@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SFPackager.Helpers;
@@ -21,6 +23,7 @@ namespace SFPackager
         private readonly SfProjectHandler _projectHandler;
         private readonly VersionHandler _versionHandler;
         private readonly VersionService _versionService;
+        private readonly DeployScriptCreator _scriptCreator;
 
         public App(
             IHandleFiles blobService,
@@ -32,7 +35,8 @@ namespace SFPackager
             VersionService versionService,
             Packager packager,
             ManifestWriter manifestWriter,
-            CmdLineOptions baseConfig)
+            CmdLineOptions baseConfig,
+            DeployScriptCreator scriptCreator)
         {
             _blobService = blobService;
             _locator = locator;
@@ -44,6 +48,7 @@ namespace SFPackager
             _packager = packager;
             _manifestWriter = manifestWriter;
             _baseConfig = baseConfig;
+            _scriptCreator = scriptCreator;
         }
 
         public async Task RunAsync()
@@ -109,6 +114,15 @@ namespace SFPackager
             await _blobService
                 .SaveFileAsync(fileName, versionJson)
                 .ConfigureAwait(false);
+
+            var basePackagePath = new DirectoryInfo($"{_baseConfig.SourceBasePath}\\sfpackaging");
+            var things = versions
+                .Where(x => x.Value.VersionType == VersionType.Application)
+                .Where(x => x.Value.IncludeInPackage)
+                .Select(x => x.Key)
+                .ToList();
+
+            _scriptCreator.Do(newVersion, basePackagePath, things);
         }
     }
 }
