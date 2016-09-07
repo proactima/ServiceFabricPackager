@@ -15,7 +15,11 @@ namespace SFPackager.Services
 
         public void Do(VersionNumber newVersion, DirectoryInfo basePackagePath, List<string> packages)
         {
-            var deployScriptTemplate = new FileInfo(DeployScriptName);
+            var selfAssembly = System.Reflection.Assembly.GetEntryAssembly();
+            var assemblyPath = Path.GetDirectoryName(selfAssembly.Location);
+            var srcScriptLocation = Path.Combine(assemblyPath, DeployScriptName);
+
+            var deployScriptTemplate = new FileInfo(srcScriptLocation);
 
             var packageList = packages
                 .Select(x => $"\"{x}\"")
