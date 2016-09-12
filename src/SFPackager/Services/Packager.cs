@@ -13,18 +13,35 @@ namespace SFPackager.Services
         private readonly AspNetCorePackager _aspNetCorePackager;
         private readonly IHandleFiles _fileHandler;
         private readonly PackageConfig _packageConfig;
+        private readonly CmdLineOptions _baseConfig;
 
-        public Packager(AspNetCorePackager aspNetCorePackager, IHandleFiles fileHandler, PackageConfig packageConfig)
+        public Packager(AspNetCorePackager aspNetCorePackager, IHandleFiles fileHandler, PackageConfig packageConfig,
+            CmdLineOptions baseConfig)
         {
             _aspNetCorePackager = aspNetCorePackager;
             _fileHandler = fileHandler;
             _packageConfig = packageConfig;
+            _baseConfig = baseConfig;
         }
 
         public async Task PackageApplications(
             Dictionary<string, GlobalVersion> thingsToPackage,
             Dictionary<string, ServiceFabricApplicationProject> appList)
         {
+            var packageFolder = new FileInfo(appList.First().Value.PackageBasePath);
+            if (Directory.Exists(packageFolder.DirectoryName))
+            {
+                try
+                {
+                    Directory.Delete(appList.First().Value.PackageBasePath, true);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Problems removing packaging folder. Is something holding file lock?");
+                    throw;
+                }
+            }
+
             var applications = thingsToPackage
                 .Where(x => x.Value.VersionType == VersionType.Application)
                 .Where(x => x.Value.IncludeInPackage);
@@ -69,7 +86,7 @@ namespace SFPackager.Services
                         var package = serviceData.SubPackages
                             .First(x => x.PackageType == PackageType.Code);
                         var servicePackageFolder = $"{appData.PackagePath}\\{serviceData.ServiceName}\\{package.Name}";
-                        var resultCode = _aspNetCorePackager.Package(serviceData.ProjectFolder, servicePackageFolder, "Release");
+                        var resultCode = _aspNetCorePackager.Package(serviceData.ProjectFolder, servicePackageFolder, _baseConfig.BuildConfiguration);
                         if (resultCode != 0)
                         {
                             throw new InvalidOperationException("Something went wrong packaging ASP.Net Core stuff");

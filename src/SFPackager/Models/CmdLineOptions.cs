@@ -42,5 +42,8 @@ namespace SFPackager.Models
 
         [SwitchArgument('x', "forceall", false, Description = "Force package all items")]
         public bool ForcePackageAll { get; set; }
+
+        [SwitchArgument('d', "cleanpackage", true, Description = "Clean package folder before packaging")]
+        public bool CleanPackageFolder { get; set; }
     }
 }
