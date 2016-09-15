@@ -10,16 +10,16 @@ namespace SFPackager.Services.FileStorage
 {
     public class LocalFileService : IHandleFiles
     {
-        private readonly CmdLineOptions _baseConfig;
+        private readonly AppConfig _baseConfig;
 
-        public LocalFileService(CmdLineOptions baseConfig)
+        public LocalFileService(AppConfig baseConfig)
         {
             _baseConfig = baseConfig;
         }
 
         public Task<Response<string>> GetFileAsStringAsync(string fileName)
         {
-            var filePath = $"{_baseConfig.LocalConfigFolder}\\{fileName}";
+            var filePath = Path.Combine(_baseConfig.LocalStoragePath.FullName, fileName);
 
             try
             {
@@ -52,7 +52,7 @@ namespace SFPackager.Services.FileStorage
 
         public Task<Response<byte[]>> GetFileAsBytesAsync(string fileName)
         {
-            var filePath = $"{_baseConfig.LocalConfigFolder}\\{fileName}";
+            var filePath = Path.Combine(_baseConfig.LocalStoragePath.FullName, fileName);
 
             try
             {
@@ -85,7 +85,7 @@ namespace SFPackager.Services.FileStorage
 
         public Task<Response<string>> SaveFileAsync(string fileName, string content)
         {
-            var filePath = $"{_baseConfig.LocalConfigFolder}\\{fileName}";
+            var filePath = Path.Combine(_baseConfig.LocalStoragePath.FullName, fileName);
 
             try
             {

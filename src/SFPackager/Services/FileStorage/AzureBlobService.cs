@@ -13,9 +13,9 @@ namespace SFPackager.Services.FileStorage
 {
     public class AzureBlobService : IHandleFiles
     {
-        private readonly CmdLineOptions _baseConfig;
+        private readonly AppConfig _baseConfig;
 
-        public AzureBlobService(CmdLineOptions baseConfig)
+        public AzureBlobService(AppConfig baseConfig)
         {
             _baseConfig = baseConfig;
         }
@@ -145,7 +145,7 @@ namespace SFPackager.Services.FileStorage
 
         private string CreateSharedKey(string challengeString)
         {
-            var accessKey = Convert.FromBase64String(_baseConfig.AzureStorageAccountKey);
+            var accessKey = Convert.FromBase64String(_baseConfig.AzureStorageAccountSecret);
             var hasher = new HMACSHA256(accessKey);
 
             var hashed = hasher.ComputeHash(Encoding.UTF8.GetBytes(challengeString));
