@@ -13,10 +13,10 @@ namespace SFPackager.Services
         private readonly AspNetCorePackager _aspNetCorePackager;
         private readonly IHandleFiles _fileHandler;
         private readonly PackageConfig _packageConfig;
-        private readonly CmdLineOptions _baseConfig;
+        private readonly AppConfig _baseConfig;
 
         public Packager(AspNetCorePackager aspNetCorePackager, IHandleFiles fileHandler, PackageConfig packageConfig,
-            CmdLineOptions baseConfig)
+            AppConfig baseConfig)
         {
             _aspNetCorePackager = aspNetCorePackager;
             _fileHandler = fileHandler;

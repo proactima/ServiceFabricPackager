@@ -8,7 +8,7 @@ namespace SFPackager
 {
     public static class SimpleInjectorSetup
     {
-        public static Container Configure(CmdLineOptions baseConfig, PackageConfig packageConfig)
+        public static Container Configure(AppConfig baseConfig, PackageConfig packageConfig)
         {
             var container = new Container();
 
@@ -35,7 +35,7 @@ namespace SFPackager
             container.RegisterSingleton(config);
         }
 
-        public static Container GetSetupContainer(CmdLineOptions baseConfig)
+        public static Container GetSetupContainer(AppConfig baseConfig)
         {
             var container = new Container();
 

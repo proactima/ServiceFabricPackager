@@ -13,7 +13,7 @@ namespace SFPackager
 {
     public class App
     {
-        private readonly CmdLineOptions _baseConfig;
+        private readonly AppConfig _baseConfig;
         private readonly IHandleFiles _blobService;
         private readonly IHandleClusterConnection _fabricRemote;
         private readonly ServiceHashCalculator _hasher;
@@ -35,7 +35,7 @@ namespace SFPackager
             VersionService versionService,
             Packager packager,
             ManifestWriter manifestWriter,
-            CmdLineOptions baseConfig,
+            AppConfig baseConfig,
             DeployScriptCreator scriptCreator)
         {
             _blobService = blobService;
@@ -59,7 +59,7 @@ namespace SFPackager
             Console.WriteLine("Trying to read app manifest from deployed applications...");
             var deployedApps = await _fabricRemote.GetApplicationManifestsAsync().ConfigureAwait(false);
             var currentVersion = _versionHandler.GetCurrentVersionFromApplications(deployedApps);
-            var newVersion = currentVersion.Increment(_baseConfig.CommitHash);
+            var newVersion = currentVersion.Increment(_baseConfig.UniqueVersionIdentifier);
 
             Console.WriteLine($"New version is: {newVersion}");
 
@@ -82,7 +82,7 @@ namespace SFPackager
             Console.WriteLine("Parsing Service Fabric Applications and computing hashes");
             foreach (var sfApplication in sfApplications)
             {
-                var project = _projectHandler.Parse(sfApplication, _baseConfig.SourceBasePath);
+                var project = _projectHandler.Parse(sfApplication, _baseConfig.SourcePath);
                 parsedApplications.Add(project.ApplicationTypeName, project);
                 var serviceVersions = _hasher.Calculate(project, currentVersion);
 
@@ -115,7 +115,7 @@ namespace SFPackager
                 .SaveFileAsync(fileName, versionJson)
                 .ConfigureAwait(false);
 
-            var basePackagePath = new DirectoryInfo($"{_baseConfig.SourceBasePath}\\sfpackaging");
+            var basePackagePath = new DirectoryInfo(Path.Combine(_baseConfig.SourcePath.FullName, "sfpackaging"));
             var things = versions
                 .Where(x => x.Value.VersionType == VersionType.Application)
                 .Where(x => x.Value.IncludeInPackage)

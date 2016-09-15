@@ -9,15 +9,15 @@ namespace SFPackager.Services
     public class SfProjectHandler
     {
         private readonly ManifestParser _appManifestHandler;
-        private readonly CmdLineOptions _baseConfig;
+        private readonly AppConfig _baseConfig;
 
-        public SfProjectHandler(ManifestParser appManifestHandler, CmdLineOptions baseConfig)
+        public SfProjectHandler(ManifestParser appManifestHandler, AppConfig baseConfig)
         {
             _appManifestHandler = appManifestHandler;
             _baseConfig = baseConfig;
         }
 
-        public ServiceFabricApplicationProject Parse(ServiceFabricApplicationProject sfProject, string srcBasePath)
+        public ServiceFabricApplicationProject Parse(ServiceFabricApplicationProject sfProject, DirectoryInfo srcBasePath)
         {
             var basePath = FileHelper.RemoveFileFromPath(sfProject.ProjectFileFullPath);
 
@@ -30,7 +30,7 @@ namespace SFPackager.Services
                 manager.AddNamespace("x", "http://schemas.microsoft.com/developer/msbuild/2003");
 
                 sfProject.ApplicationManifestPath = ExtractApplicationManifest(basePath, document, manager);
-                sfProject.BasePath = srcBasePath;
+                sfProject.BasePath = Path.GetFullPath(srcBasePath.FullName);
 
                 sfProject = _appManifestHandler.ReadXml(sfProject);
 
