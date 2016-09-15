@@ -115,7 +115,7 @@ namespace SFPackager
                 .SaveFileAsync(fileName, versionJson)
                 .ConfigureAwait(false);
 
-            var basePackagePath = new DirectoryInfo($"{_baseConfig.SourcePath.FullName}\\sfpackaging");
+            var basePackagePath = new DirectoryInfo(Path.Combine(_baseConfig.SourcePath.FullName, "sfpackaging"));
             var things = versions
                 .Where(x => x.Value.VersionType == VersionType.Application)
                 .Where(x => x.Value.IncludeInPackage)
