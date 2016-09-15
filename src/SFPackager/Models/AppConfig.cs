@@ -2,7 +2,7 @@
 
 namespace SFPackager.Models
 {
-    internal class AppConfig
+    public class AppConfig
     {
         public bool UseAzureStorage { get; set; }
         public string AzureStorageAccountName { get; set; }

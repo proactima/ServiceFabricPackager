@@ -8,10 +8,10 @@ namespace SFPackager.Services
 {
     public class ConfigManager
     {
-        private readonly CmdLineOptions _baseConfig;
+        private readonly AppConfig _baseConfig;
         private readonly IHandleFiles _blobService;
 
-        public ConfigManager(IHandleFiles blobService, CmdLineOptions baseConfig)
+        public ConfigManager(IHandleFiles blobService, AppConfig baseConfig)
         {
             _blobService = blobService;
             _baseConfig = baseConfig;

@@ -8,9 +8,9 @@ namespace SFPackager.Services
 {
     public class SfLocator
     {
-        private readonly CmdLineOptions _baseConfig;
+        private readonly AppConfig _baseConfig;
 
-        public SfLocator(CmdLineOptions baseConfig)
+        public SfLocator(AppConfig baseConfig)
         {
             _baseConfig = baseConfig;
         }
@@ -18,11 +18,9 @@ namespace SFPackager.Services
         public List<ServiceFabricApplicationProject> LocateSfApplications()
         {
             Console.WriteLine("Locating ServiceFabric Applications.");
-            var directory = new DirectoryInfo(_baseConfig.SourceBasePath);
-            var fileList = directory.GetFiles("*.sfproj", SearchOption.AllDirectories);
+            var fileList = _baseConfig.SourcePath.GetFiles("*.sfproj", SearchOption.AllDirectories);
 
             var applications = fileList
-                //.Where(x => !string.Equals(x.Name, "SignupWeb.sfproj")) 
                 .Select(fileInfo =>
                 {
                     Console.WriteLine($"\tFound {fileInfo.Directory.FullName}");
@@ -30,7 +28,7 @@ namespace SFPackager.Services
                     {
                         ProjectFile = fileInfo.Name,
                         ProjectFolder = fileInfo.Directory.FullName,
-                        BasePath = _baseConfig.SourceBasePath,
+                        BasePath = Path.GetFullPath(_baseConfig.SourcePath.FullName),
                         BuildConfiguration = _baseConfig.BuildConfiguration
                     };
                 })

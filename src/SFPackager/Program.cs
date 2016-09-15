@@ -47,24 +47,10 @@ namespace SFPackager
                 app.ShowHelp();
                 return;
             }
-
-            var parser = new CommandLineParser.CommandLineParser();
-            var target = new CmdLineOptions();
-            parser.ExtractArgumentAttributes(target);
-
+            
             try
             {
-                parser.ParseCommandLine(args);
-            }
-            catch (Exception)
-            {
-                parser.ShowUsage();
-                return;
-            }
-
-            try
-            {
-                MainAsync(target).Wait();
+                MainAsync(appConfig).Wait();
             }
             catch (Exception ex)
             {
@@ -75,7 +61,7 @@ namespace SFPackager
             Console.ReadLine();
         }
 
-        private static async Task MainAsync(CmdLineOptions baseConfig)
+        private static async Task MainAsync(AppConfig baseConfig)
         {
             var setupContainer = SimpleInjectorSetup.GetSetupContainer(baseConfig);
             var configManager = setupContainer.GetInstance<ConfigManager>();
