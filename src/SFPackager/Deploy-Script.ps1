@@ -14,18 +14,23 @@ catch
 	throw
 }
 
+$ClusterManifestRaw = Get-ServiceFabricClusterManifest
+$ClusterManifest = [xml]$ClusterManifestRaw
+$managementSection = $ClusterManifest.ClusterManifest.FabricSettings.Section | ? { $_.Name -eq "Management" }
+$ImageStoreConnectionString = $managementSection.ChildNodes | ? { $_.Name -eq "ImageStoreConnectionString" } | Select-Object -Expand Value
+
 foreach($package in $Packages) {
 	$packagePath = Join-Path -Path $BasePackagePath -ChildPath $package
 	$packageName = $package + $Suffix
 
 	Write-Information "Testing application package $package"
-	$packageValidation = (Test-ServiceFabricApplicationPackage -ApplicationPackagePath $packagePath -ImageStoreConnectionString fabric:ImageStore)
+	$packageValidation = (Test-ServiceFabricApplicationPackage -ApplicationPackagePath $packagePath -ImageStoreConnectionString $ImageStoreConnectionString)
 	if(!$packageValidation) {
 		throw "Validation failed for package: $package"
 	}
 
 	Write-Information "Copying application package $package"
-	Copy-ServiceFabricApplicationPackage -ApplicationPackagePath $packagePath -ImageStoreConnectionString fabric:ImageStore -ApplicationPackagePathInImageStore $packageName
+	Copy-ServiceFabricApplicationPackage -ApplicationPackagePath $packagePath -ImageStoreConnectionString $ImageStoreConnectionString -ApplicationPackagePathInImageStore $packageName
 
 	Register-ServiceFabricApplicationType -ApplicationPathInImageStore $packageName -TimeoutSec 600
 }
