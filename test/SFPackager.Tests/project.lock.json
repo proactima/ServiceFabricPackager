@@ -3,32 +3,6 @@
   "version": 2,
   "targets": {
     ".NETCoreApp,Version=v1.0": {
-      "CommandLineArgumentsParser/3.0.4": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.CSharp": "4.0.1-rc2-24027",
-          "System.Collections": "4.0.11-rc2-24027",
-          "System.Console": "4.0.0-rc2-24027",
-          "System.Globalization": "4.0.11-rc2-24027",
-          "System.IO": "4.1.0-rc2-24027",
-          "System.IO.FileSystem": "4.0.1-rc2-24027",
-          "System.Linq": "4.1.0-rc2-24027",
-          "System.Reflection": "4.1.0-rc2-24027",
-          "System.Reflection.Extensions": "4.0.1-rc2-24027",
-          "System.Reflection.TypeExtensions": "4.1.0-rc2-24027",
-          "System.Resources.ResourceManager": "4.0.1-rc2-24027",
-          "System.Runtime": "4.1.0-rc2-24027",
-          "System.Runtime.Extensions": "4.1.0-rc2-24027",
-          "System.Runtime.Serialization.Primitives": "4.1.1-rc2-24027",
-          "System.Text.RegularExpressions": "4.0.12-rc2-24027"
-        },
-        "compile": {
-          "lib/netstandard1.3/CommandLineArgumentsParser.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard1.3/CommandLineArgumentsParser.dll": {}
-        }
-      },
       "dotnet-test-xunit/2.2.0-preview2-build1029": {
         "type": "package",
         "dependencies": {
@@ -2712,7 +2686,6 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v1.0",
         "dependencies": {
-          "CommandLineArgumentsParser": "3.0.4",
           "Microsoft.AspNetCore.WebUtilities": "1.0.0",
           "Microsoft.Extensions.CommandLineUtils": "1.0.0",
           "Microsoft.NETCore.App": "1.0.0",
@@ -2735,24 +2708,6 @@
     }
   },
   "libraries": {
-    "CommandLineArgumentsParser/3.0.4": {
-      "sha512": "4Hr1tGcQURyG0P5wdPiGMxZJW5hnTYqCMUw66vwfejl588NDhPkn+2HS+RsrBmG0r78HwDBUX2pBZogrfYC/rQ==",
-      "type": "package",
-      "path": "CommandLineArgumentsParser/3.0.4",
-      "files": [
-        "CommandLineArgumentsParser.3.0.4.nupkg.sha512",
-        "CommandLineArgumentsParser.nuspec",
-        "lib/dnx451/CommandLineArgumentsParser.dll",
-        "lib/net20/CommandLineArgumentsParser.dll",
-        "lib/net35/CommandLineArgumentsParser.dll",
-        "lib/net40/CommandLineArgumentsParser.dll",
-        "lib/net45/CommandLineArgumentsParser.dll",
-        "lib/net451/CommandLineArgumentsParser.dll",
-        "lib/net452/CommandLineArgumentsParser.dll",
-        "lib/net46/CommandLineArgumentsParser.dll",
-        "lib/netstandard1.3/CommandLineArgumentsParser.dll"
-      ]
-    },
     "dotnet-test-xunit/2.2.0-preview2-build1029": {
       "sha512": "mPl4HHGcXsE4ljw3sHCOUvlyhXHDpfFO6qz0HbTQrhrFT8Tgm/HFLfz6TpMXUfch7rRL23kR8i0yjQPYdsl6EQ==",
       "type": "package",

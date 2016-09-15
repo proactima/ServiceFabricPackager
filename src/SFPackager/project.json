@@ -5,7 +5,6 @@
   },
 
   "dependencies": {
-    "CommandLineArgumentsParser": "3.0.4",
     "Microsoft.AspNetCore.WebUtilities": "1.0.0",
     "Microsoft.Extensions.CommandLineUtils": "1.0.0",
     "Microsoft.NETCore.App": "1.0.0",
