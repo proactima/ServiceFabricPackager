@@ -24,7 +24,7 @@ namespace SFPackager.Services.Manifest
                 .Where(x => x.ServiceManifestName.Equals(serviceManifestName))
                 .ToList();
 
-            if(!endpoints.Any())
+            if (!endpoints.Any())
                 return;
 
             document.RemoveNodes("//x:ServiceManifest/x:Resources/x:Endpoints", "/x:Endpoint", nsManager);
@@ -37,7 +37,10 @@ namespace SFPackager.Services.Manifest
                 endpointElement.SetAttribute("Protocol", endpoint.Protocol);
                 endpointElement.SetAttribute("Name", endpoint.EndpointName);
                 endpointElement.SetAttribute("Type", endpoint.Type);
-                endpointElement.SetAttribute("Port", endpoint.Port.ToString());
+                if (endpoint.Port != 0)
+                {
+                    endpointElement.SetAttribute("Port", endpoint.Port.ToString());
+                }
                 endpointsNode.AppendChild(endpointElement);
             }
         }
