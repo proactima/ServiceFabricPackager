@@ -37,7 +37,7 @@ namespace SFPackager.Services
 
             packagedVersionMap
                 .Where(x => x.Value.VersionType == VersionType.ServicePackage)
-                .Where(v => !v.Value.Hash.Equals(currentVersionMap[v.Key].Hash))
+                .Where(x => !x.Value.Hash.Equals(GetGlobalVersion(currentVersionMap, x.Key).Hash))
                 .ForEach(s =>
                 {
                     SetVersionOnPackage(s, newVersion, packagedVersionMap);
@@ -45,7 +45,7 @@ namespace SFPackager.Services
             
             packagedVersionMap
                 .Where(x => x.Value.VersionType == VersionType.Service)
-                .Where(x => !x.Value.Hash.Equals(currentVersionMap[x.Key].Hash))
+                .Where(x => !x.Value.Hash.Equals(GetGlobalVersion(currentVersionMap, x.Key).Hash))
                 .ForEach(s =>
             {
                 s.Value.Version = newVersion;
@@ -56,7 +56,7 @@ namespace SFPackager.Services
 
             packagedVersionMap
                 .Where(x => x.Value.VersionType == VersionType.Application)
-                .Where(x => !x.Value.Hash.Equals(currentVersionMap[x.Key].Hash))
+                .Where(x => !x.Value.Hash.Equals(GetGlobalVersion(currentVersionMap, x.Key).Hash))
                 .ForEach(s =>
                 {
                     s.Value.Version = newVersion;
@@ -95,6 +95,14 @@ namespace SFPackager.Services
             var appRef = versionMap[version.Value.ParentRef].ParentRef;
             versionMap[appRef].Version = newVersion;
             versionMap[appRef].IncludeInPackage = true;
+        }
+
+        private static GlobalVersion GetGlobalVersion(IReadOnlyDictionary<string, GlobalVersion> currentVersionMap,
+            string key)
+        {
+            return currentVersionMap.ContainsKey(key)
+                ? currentVersionMap[key]
+                : new GlobalVersion();
         }
     }
 }

@@ -46,7 +46,7 @@ namespace SFPackager.Models
                 AzureStorageAccountSecret = rawConfig.AzureStorageAccountSecret.Value(),
                 AzureStorageAccountContainer = rawConfig.AzureStorageAccountContainer.Value(),
                 UseLocalStorage = rawConfig.UseLocalStorage.HasValue(),
-                LocalStoragePath = new DirectoryInfo(rawConfig.LocalStoragePath.Value()),
+                LocalStoragePath = rawConfig.LocalStoragePath.HasValue() ? new DirectoryInfo(rawConfig.LocalStoragePath.Value()) : new DirectoryInfo("c:"),
                 ConfigFileName = rawConfig.ConfigFileName.Value(),
                 SourcePath = new DirectoryInfo(rawConfig.SourcePath.Value()),
                 BuildConfiguration = rawConfig.BuildConfiguration.HasValue() ? rawConfig.BuildConfiguration.Value() : "Release",
