@@ -30,6 +30,14 @@ namespace SFPackager
         Data
     }
 
+    public enum LogLevel
+    {
+        Error,
+        Warning,
+        Info,
+        Debug
+    }
+
     public static class Constants
     {
         public const string GlobalIdentifier = "##GLOBAL##";

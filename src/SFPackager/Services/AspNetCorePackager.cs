@@ -5,6 +5,13 @@ namespace SFPackager.Services
 {
     public class AspNetCorePackager
     {
+        private readonly ConsoleWriter _log;
+
+        public AspNetCorePackager(ConsoleWriter log)
+        {
+            _log = log;
+        }
+
         public int Package(string projectFolder, string codeTargetFolder, string configuration)
         {
             projectFolder = projectFolder.TrimEnd('\\');
@@ -21,7 +28,7 @@ namespace SFPackager.Services
             int exitCode;
             using (var process = Process.Start(processInfo))
             {
-                Console.WriteLine(process.StandardOutput.ReadToEnd());
+                _log.WriteLine(process.StandardOutput.ReadToEnd());
                 process.WaitForExit();
                 exitCode = process.ExitCode;
             }

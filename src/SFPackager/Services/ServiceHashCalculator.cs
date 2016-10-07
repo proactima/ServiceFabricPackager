@@ -11,22 +11,21 @@ namespace SFPackager.Services
 {
     public class ServiceHashCalculator
     {
-        private readonly PackageConfig _packageConfig;
-
         private readonly FakeManifestCreator _manifestCreator;
         private readonly EndpointAppender _endpointAppender;
         private readonly CertificateAppender _certificateAppender;
+        private readonly ConsoleWriter _log;
 
         public ServiceHashCalculator(
-            PackageConfig packageConfig,
             EndpointAppender endpointAppender,
             FakeManifestCreator manifestCreator,
-            CertificateAppender certificateAppender)
+            CertificateAppender certificateAppender,
+            ConsoleWriter log)
         {
-            _packageConfig = packageConfig;
             _endpointAppender = endpointAppender;
             _manifestCreator = manifestCreator;
             _certificateAppender = certificateAppender;
+            _log = log;
         }
 
         public Dictionary<string, GlobalVersion> Calculate(ServiceFabricApplicationProject project, VersionNumber currentVersion)
@@ -37,7 +36,7 @@ namespace SFPackager.Services
             {
                 foreach (var subPackage in service.Value.SubPackages)
                 {
-                    Console.WriteLine($"Computing hash for Service: {service.Key} - Package: {subPackage.Name}");
+                    _log.WriteLine($"Computing hash for Service: {service.Key} - Package: {subPackage.Name}");
                     var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                     var directory = new DirectoryInfo(subPackage.Path);
                     IOrderedEnumerable<string> files;

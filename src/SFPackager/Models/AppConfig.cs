@@ -18,6 +18,7 @@ namespace SFPackager.Models
         public bool ForcePackageAll { get; set; }
         public bool CleanOutputFolder { get; set; }
         public DirectoryInfo PackageOutputPath { get; set; }
+        public bool VerboseOutput { get; set; }
 
         internal static AppConfig ValidateAndCreate(AppConfigRaw rawConfig)
         {
@@ -54,7 +55,8 @@ namespace SFPackager.Models
                 UseSecureCluster = rawConfig.UseSecureCluster.HasValue(),
                 ForcePackageAll = rawConfig.ForcePackageAll.HasValue(),
                 CleanOutputFolder = rawConfig.CleanOutputFolder.HasValue(),
-                PackageOutputPath = GetPackageOutputPath(rawConfig)
+                PackageOutputPath = GetPackageOutputPath(rawConfig),
+                VerboseOutput = rawConfig.VerboseOutput.HasValue(),
             };
         }
 

@@ -24,6 +24,7 @@ namespace SFPackager
         private readonly VersionHandler _versionHandler;
         private readonly VersionService _versionService;
         private readonly DeployScriptCreator _scriptCreator;
+        private readonly ConsoleWriter _log;
 
         public App(
             IHandleFiles blobService,
@@ -36,7 +37,8 @@ namespace SFPackager
             Packager packager,
             ManifestWriter manifestWriter,
             AppConfig baseConfig,
-            DeployScriptCreator scriptCreator)
+            DeployScriptCreator scriptCreator,
+            ConsoleWriter log)
         {
             _blobService = blobService;
             _locator = locator;
@@ -49,6 +51,7 @@ namespace SFPackager
             _manifestWriter = manifestWriter;
             _baseConfig = baseConfig;
             _scriptCreator = scriptCreator;
+            _log = log;
         }
 
         public async Task RunAsync()
@@ -56,12 +59,12 @@ namespace SFPackager
             var sfApplications = _locator.LocateSfApplications();
             await _fabricRemote.Init().ConfigureAwait(false);
 
-            Console.WriteLine("Trying to read app manifest from deployed applications...");
+            _log.WriteLine("Trying to read app manifest from deployed applications...");
             var deployedApps = await _fabricRemote.GetApplicationManifestsAsync().ConfigureAwait(false);
             var currentVersion = _versionHandler.GetCurrentVersionFromApplications(deployedApps);
             var newVersion = currentVersion.Increment(_baseConfig.UniqueVersionIdentifier);
 
-            Console.WriteLine($"New version is: {newVersion}");
+            _log.WriteLine($"New version is: {newVersion}", LogLevel.Info);
 
             var versions = new Dictionary<string, GlobalVersion>
             {
@@ -72,14 +75,14 @@ namespace SFPackager
                 }
             };
 
-            Console.WriteLine($"Loading version manifest for {currentVersion}");
+            _log.WriteLine($"Loading version manifest for {currentVersion}");
             var currentHashMapResponse = await _blobService
                 .GetFileAsStringAsync(currentVersion.FileName)
                 .ConfigureAwait(false);
 
             var parsedApplications = new Dictionary<string, ServiceFabricApplicationProject>();
 
-            Console.WriteLine("Parsing Service Fabric Applications and computing hashes");
+            _log.WriteLine("Parsing Service Fabric Applications and computing hashes");
             foreach (var sfApplication in sfApplications)
             {
                 var project = _projectHandler.Parse(sfApplication, _baseConfig.SourcePath);
@@ -91,24 +94,24 @@ namespace SFPackager
 
             if (_baseConfig.ForcePackageAll || !currentHashMapResponse.IsSuccessful)
             {
-                Console.WriteLine($"Force package all, setting everything to {newVersion}");
+                _log.WriteLine($"Force package all, setting everything to {newVersion}");
                 _versionService.SetVersionIfNoneIsDeployed(versions, newVersion);
             }
             else
             {
-                Console.WriteLine($"Setting version of changed packages to {newVersion}");
+                _log.WriteLine($"Setting version of changed packages to {newVersion}");
                 _versionService.SetVersionsIfVersionIsDeployed(currentHashMapResponse, versions, newVersion);
             }
 
-            Console.WriteLine("Packaging applications");
+            _log.WriteLine("Packaging applications", LogLevel.Info);
             await _packager
                 .PackageApplications(versions, parsedApplications)
                 .ConfigureAwait(false);
 
-            Console.WriteLine("Updating manifests");
+            _log.WriteLine("Updating manifests");
             _manifestWriter.UpdateManifests(versions, parsedApplications);
 
-            Console.WriteLine($"Storing version map for {newVersion}");
+            _log.WriteLine($"Storing version map for {newVersion}", LogLevel.Info);
             var versionJson = JsonConvert.SerializeObject(versions);
             var fileName = versions[Constants.GlobalIdentifier].Version.FileName;
             await _blobService

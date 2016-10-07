@@ -18,5 +18,6 @@ namespace SFPackager.Models
         public CommandOption ForcePackageAll { get; set; }
         public CommandOption CleanOutputFolder { get; set; }
         public CommandOption PackageOutputPath { get; set; }
+        public CommandOption VerboseOutput { get; set; }
     }
 }

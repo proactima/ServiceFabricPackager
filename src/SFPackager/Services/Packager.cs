@@ -14,14 +14,16 @@ namespace SFPackager.Services
         private readonly IHandleFiles _fileHandler;
         private readonly PackageConfig _packageConfig;
         private readonly AppConfig _baseConfig;
+        private readonly ConsoleWriter _log;
 
         public Packager(AspNetCorePackager aspNetCorePackager, IHandleFiles fileHandler, PackageConfig packageConfig,
-            AppConfig baseConfig)
+            AppConfig baseConfig, ConsoleWriter log)
         {
             _aspNetCorePackager = aspNetCorePackager;
             _fileHandler = fileHandler;
             _packageConfig = packageConfig;
             _baseConfig = baseConfig;
+            _log = log;
         }
 
         public async Task PackageApplications(
@@ -37,7 +39,7 @@ namespace SFPackager.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Problems removing packaging folder. Is something holding file lock?");
+                    _log.WriteLine($"Problems removing packaging folder. Is something holding file lock?", LogLevel.Error);
                     throw;
                 }
             }

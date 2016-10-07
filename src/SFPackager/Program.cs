@@ -32,6 +32,7 @@ namespace SFPackager
                 ForcePackageAll = app.Option("-x|--forcePackage", "", CommandOptionType.NoValue),
                 CleanOutputFolder = app.Option("-d|--cleanOutput", "Clean packaging folder before packaging", CommandOptionType.NoValue),
                 PackageOutputPath = app.Option("-o|--packageOutput", "Path to package to. Defaults to SOURCEPATH\\sfpackaging", CommandOptionType.SingleValue),
+                VerboseOutput = app.Option("-v|--verbose", "Verbose output", CommandOptionType.NoValue),
             };
             
             var errCode = app.Execute(args);
@@ -58,7 +59,6 @@ namespace SFPackager
             }
 
             Console.WriteLine("Done!");
-            Console.ReadLine();
         }
 
         private static async Task MainAsync(AppConfig baseConfig)
