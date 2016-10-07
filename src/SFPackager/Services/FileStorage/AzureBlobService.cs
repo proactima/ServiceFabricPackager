@@ -14,10 +14,12 @@ namespace SFPackager.Services.FileStorage
     public class AzureBlobService : IHandleFiles
     {
         private readonly AppConfig _baseConfig;
+        private readonly ConsoleWriter _log;
 
-        public AzureBlobService(AppConfig baseConfig)
+        public AzureBlobService(AppConfig baseConfig, ConsoleWriter log)
         {
             _baseConfig = baseConfig;
+            _log = log;
         }
 
         public async Task<Response<string>> GetFileAsStringAsync(string fileName)
@@ -90,7 +92,7 @@ namespace SFPackager.Services.FileStorage
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _log.WriteLine(ex.Message, LogLevel.Error);
             }
 
             return new Response<string>
@@ -132,7 +134,7 @@ namespace SFPackager.Services.FileStorage
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _log.WriteLine(ex.Message, LogLevel.Error);
             }
 
             return new Response<byte[]>

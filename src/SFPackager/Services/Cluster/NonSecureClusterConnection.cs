@@ -11,7 +11,7 @@ namespace SFPackager.Services.Cluster
     {
         private readonly PackageConfig _packageConfig;
 
-        public NonSecureClusterConnection(PackageConfig packageConfig)
+        public NonSecureClusterConnection(PackageConfig packageConfig, ConsoleWriter log) : base(log)
         {
             _packageConfig = packageConfig;
         }

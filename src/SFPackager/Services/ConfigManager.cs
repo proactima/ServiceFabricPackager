@@ -10,16 +10,18 @@ namespace SFPackager.Services
     {
         private readonly AppConfig _baseConfig;
         private readonly IHandleFiles _blobService;
+        private readonly ConsoleWriter _log;
 
-        public ConfigManager(IHandleFiles blobService, AppConfig baseConfig)
+        public ConfigManager(IHandleFiles blobService, AppConfig baseConfig, ConsoleWriter log)
         {
             _blobService = blobService;
             _baseConfig = baseConfig;
+            _log = log;
         }
 
         public async Task<PackageConfig> GetPackageConfig()
         {
-            Console.WriteLine("Loading config file...");
+            _log.WriteLine("Loading config file...");
             var result = await _blobService
                 .GetFileAsStringAsync(_baseConfig.ConfigFileName)
                 .ConfigureAwait(false);

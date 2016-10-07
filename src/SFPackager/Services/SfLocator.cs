@@ -9,21 +9,23 @@ namespace SFPackager.Services
     public class SfLocator
     {
         private readonly AppConfig _baseConfig;
+        private readonly ConsoleWriter _log;
 
-        public SfLocator(AppConfig baseConfig)
+        public SfLocator(AppConfig baseConfig, ConsoleWriter log)
         {
             _baseConfig = baseConfig;
+            _log = log;
         }
 
         public List<ServiceFabricApplicationProject> LocateSfApplications()
         {
-            Console.WriteLine("Locating ServiceFabric Applications.");
+            _log.WriteLine("Locating ServiceFabric Applications.");
             var fileList = _baseConfig.SourcePath.GetFiles("*.sfproj", SearchOption.AllDirectories);
 
             var applications = fileList
                 .Select(fileInfo =>
                 {
-                    Console.WriteLine($"\tFound {fileInfo.Directory.FullName}");
+                    _log.WriteLine($"\tFound {fileInfo.Directory.FullName}");
                     return new ServiceFabricApplicationProject
                     {
                         ProjectFile = fileInfo.Name,
@@ -34,7 +36,6 @@ namespace SFPackager.Services
                 })
                 .ToList();
 
-            Console.WriteLine();
             return applications;
         }
     }

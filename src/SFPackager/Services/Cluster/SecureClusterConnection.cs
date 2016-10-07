@@ -15,7 +15,7 @@ namespace SFPackager.Services.Cluster
         private X509Certificate2 _cert;
         private readonly PackageConfig _packageConfig;
 
-        public SecureClusterConnection(IHandleFiles blobService, PackageConfig packageConfig)
+        public SecureClusterConnection(IHandleFiles blobService, PackageConfig packageConfig, ConsoleWriter log) : base(log)
         {
             _blobService = blobService;
             _packageConfig = packageConfig;

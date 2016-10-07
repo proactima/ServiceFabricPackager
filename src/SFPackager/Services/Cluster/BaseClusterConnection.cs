@@ -14,7 +14,13 @@ namespace SFPackager.Services.Cluster
         protected string Hostname;
         protected int Port;
         protected string Scheme;
-        
+        private readonly ConsoleWriter _log;
+
+        public BaseClusterConnection(ConsoleWriter log)
+        {
+            _log = log;
+        }
+
         protected async Task<string> GetApplicationManifest(HttpClient httpClient, ServiceFabricApplication application)
         {
             var uri = CreateUri($"/ApplicationTypes/{application.TypeName}/$/GetApplicationManifest").ToString();
@@ -36,7 +42,7 @@ namespace SFPackager.Services.Cluster
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _log.WriteLine(ex.Message, LogLevel.Error);
             }
 
             return null;
@@ -62,7 +68,7 @@ namespace SFPackager.Services.Cluster
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _log.WriteLine(ex.Message, LogLevel.Error);
             }
 
             return new List<ServiceFabricApplication>();
