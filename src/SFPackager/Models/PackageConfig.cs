@@ -27,7 +27,6 @@ namespace SFPackager.Models
         public string PackageName { get; set; }
         public string SourceFileName { get; set; }
         public string TargetFileName { get; set; }
-        public string Source { get; set; }
     }
 
     public class HttpsConfig
