@@ -11,11 +11,59 @@ Service Fabric Packager is a tool that helps you with more advanced SF Packaging
 * Keeps an external history of what packages changed (Azure Blob)
 * Supports external configuration of manifests (Azure Blob).
 
-## How to use
-Coming soon
-
 ## How to build
-Download and build. More detailed info coming soon.
+Clone repo
+```
+cd src\SFPackager
+dotnet restore
+dotnet build -c Debug
+dotnet publish -c Debug
+```
+You'll then end up with the compiled code in ```bin\CONFIGURATION\netcoreapp1.0\PLATFORM\publish```
+
+## How to use
+To create a local package, first build your solution.
+Then run ```sfpackager.exe -l -p "c:\path\to\configfolder" -f "configfile.name" -s "c:\path\to\SF\source\folder" -b "Debug\Release" -i "custom-version-tag"```
+
+The config folder is a folder on your local drive that the packager will store the version map in and also read the config file from.
+The ```configfile.name``` is the config file for the packager. It should be in the configfolder. An example will be provided below.
+The ```custom-version-tag``` is a string that will be added behind the rolling version number. We use the current git commit hash.
+
+## Config file example
+```
+{
+  "Cluster": {
+    "Endpoint": "localhost",
+    "Port": 19080
+  },
+  "ExternalIncludes": [
+    {
+      "ApplicationTypeName": "AppTypeName",
+      "ServiceManifestName": "ServiceName",
+      "PackageName": "Config",
+      "SourceFileName": "myconfig.json",
+      "TargetFileName": "config.json",
+      "Source": "notused"
+    }
+  ],
+  "Https": [
+  ],
+  "Endpoints": [
+    {
+      "ApplicationTypeName": "ApiType",
+      "ServiceManifestName": "ServiceName",
+      "EndpointName": "ServiceEndpointHttp",
+      "Port": 80,
+      "Protocol": "http",
+      "Type": "Input"
+    }
+  ]
+}
+```
+
+ExternalIncludes are files to copy in from your configfolder to a sub package during the packaging process.
+Endpoints is what endpoints to configure during packaging.
+Https is what certs to configure during packaging. Example of this will be provided later.
 
 ## Actual useful information
 ### Tracking changes
