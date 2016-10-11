@@ -1,0 +1,49 @@
+{
+  "Cluster": {
+    "Endpoint": "localhost",
+    "Port": 19080
+  },
+  "HashIncludeExtensions": [
+    ".dll",
+    ".exe",
+    ".config"
+  ],
+  "HashSpecificExludes": [
+    "nondeterministic.dll"
+  ],
+  "ExternalIncludes": [
+    {
+      "ApplicationTypeName": "AppTypeName",
+      "ServiceManifestName": "ServiceName",
+      "PackageName": "Config",
+      "SourceFileName": "prodconfig.xml",
+      "TargetFileName": "Settings.xml"
+    }
+  ],
+  "Https": [
+    {
+      "ApplicationTypeName": "AppTypeName",
+      "ServiceManifestName": "ServiceName",
+      "EndpointName": "ServiceEndpointHttps",
+      "CertThumbprint": "CERTTHUMBPRINT"
+    }
+  ],
+  "Endpoints": [
+    {
+      "ApplicationTypeName": "ApiType",
+      "ServiceManifestName": "ServiceName",
+      "EndpointName": "ServiceEndpointHttp",
+      "Port": 80,
+      "Protocol": "http",
+      "Type": "Input"
+    },
+    {
+      "ApplicationTypeName": "ApiType",
+      "ServiceManifestName": "ServiceName",
+      "EndpointName": "ServiceEndpointHttps",
+      "Port": 443,
+      "Protocol": "https",
+      "Type": "Input"
+    }
+  ]
+}
