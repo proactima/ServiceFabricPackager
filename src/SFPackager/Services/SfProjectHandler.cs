@@ -17,7 +17,9 @@ namespace SFPackager.Services
             _baseConfig = baseConfig;
         }
 
-        public ServiceFabricApplicationProject Parse(ServiceFabricApplicationProject sfProject, DirectoryInfo srcBasePath)
+        public ServiceFabricApplicationProject Parse(
+            ServiceFabricApplicationProject sfProject,
+            DirectoryInfo srcBasePath)
         {
             var basePath = FileHelper.RemoveFileFromPath(sfProject.ProjectFileFullPath);
 
@@ -40,25 +42,20 @@ namespace SFPackager.Services
             }
         }
 
-        private static string ExtractApplicationManifest(string basePath, XmlNode document,
+        internal static string ExtractApplicationManifest(
+            string basePath,
+            XmlNode document,
             XmlNamespaceManager namespaceManager)
         {
-            var contents = document.SelectNodes("//x:Content/@Include", namespaceManager);
+            var contents = document.SelectSingleNode("//*[@Include='ApplicationPackageRoot\\ApplicationManifest.xml']/@Include", namespaceManager);
 
-            foreach (var content in contents)
-            {
-                if (!(content is XmlAttribute))
-                    continue;
+            if (!(contents is XmlAttribute))
+                return string.Empty;
 
-                var attr = content as XmlAttribute;
-                if (!attr.Value.ToLowerInvariant().Contains("applicationmanifest"))
-                    continue;
-
-                var path = FileHelper.RemoveFileFromPath(attr.Value);
-                return Path.GetFullPath($"{basePath}{path}");
-            }
-
-            return string.Empty;
+            var attr = contents as XmlAttribute;
+            var path = FileHelper.RemoveFileFromPath(attr.Value);
+            
+            return Path.GetFullPath($"{basePath}{path}");
         }
 
         private Dictionary<string, ServiceFabricServiceProject> ExtractProjectReferences(

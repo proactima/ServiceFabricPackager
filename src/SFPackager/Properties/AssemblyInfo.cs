@@ -17,3 +17,4 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("39d7cafb-75ad-4db8-8f14-d7161536f0ee")]
+[assembly: InternalsVisibleTo("SFPackager.Tests")]
