@@ -16,13 +16,20 @@ namespace SFPackager.Services
         private readonly ServiceImportMutator _serviceImport;
         private readonly EndpointAppender _endpointAppender;
         private readonly AppManifestCleaner _appManifestCleaner;
+        private readonly AppConfig _baseConfig;
 
-        public ManifestWriter(CertificateAppender certAppender, ServiceImportMutator serviceImport, EndpointAppender endpointAppender, AppManifestCleaner appManifestCleaner)
+        public ManifestWriter(
+            CertificateAppender certAppender,
+            ServiceImportMutator serviceImport,
+            EndpointAppender endpointAppender,
+            AppManifestCleaner appManifestCleaner,
+            AppConfig baseConfig)
         {
             _certAppender = certAppender;
             _serviceImport = serviceImport;
             _endpointAppender = endpointAppender;
             _appManifestCleaner = appManifestCleaner;
+            _baseConfig = baseConfig;
         }
 
         public void UpdateManifests(
@@ -37,10 +44,11 @@ namespace SFPackager.Services
             foreach (var app in apps)
             {
                 var appData = applications[app.Key];
-                var packagedAppManifest = Path.Combine(appData.PackagePath, appData.ApplicationManifestFile);
+                var appPackagePath = appData.GetPackagePath(_baseConfig.PackageOutputPath);
+                var packagedAppManifest = appData.GetAppManifestTargetFile(appPackagePath);
 
                 var appDocument = new XmlDocument();
-                var rawAppXml = File.ReadAllText(packagedAppManifest);
+                var rawAppXml = File.ReadAllText(packagedAppManifest.FullName);
                 appDocument.LoadXml(rawAppXml);
                 var appNsManager = new XmlNamespaceManager(appDocument.NameTable);
                 appNsManager.AddNamespace("x", NamespaceString);
@@ -53,7 +61,7 @@ namespace SFPackager.Services
                 _certAppender.SetCertificates(appDocument, appData.ApplicationTypeName, serviceNames);
                 _appManifestCleaner.Execute(appDocument);
 
-                using (var outStream = new FileStream(packagedAppManifest, FileMode.Truncate))
+                using (var outStream = new FileStream(packagedAppManifest.FullName, FileMode.Truncate))
                 {
                     appDocument.Save(outStream);
                 }
@@ -67,7 +75,7 @@ namespace SFPackager.Services
                 {
                     var serviceData = appData.Services[service.Key];
 
-                    var packagedServiceManifest = Path.Combine(appData.PackagePath, service.Key,
+                    var packagedServiceManifest = Path.Combine(appPackagePath.FullName, service.Key,
                         serviceData.ServiceManifestFile);
                     var serviceDocument = new XmlDocument();
                     var rawServiceXml = File.ReadAllText(packagedServiceManifest);

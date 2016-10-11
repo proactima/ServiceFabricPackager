@@ -30,12 +30,11 @@ namespace SFPackager.Services
             Dictionary<string, GlobalVersion> thingsToPackage,
             Dictionary<string, ServiceFabricApplicationProject> appList)
         {
-            var packageFolder = new FileInfo(appList.First().Value.PackageBasePath);
-            if (Directory.Exists(packageFolder.DirectoryName))
+            if (_baseConfig.PackageOutputPath.Exists && _baseConfig.CleanOutputFolder)
             {
                 try
                 {
-                    Directory.Delete(appList.First().Value.PackageBasePath, true);
+                    _baseConfig.PackageOutputPath.Delete(true);
                 }
                 catch (Exception ex)
                 {
@@ -43,6 +42,9 @@ namespace SFPackager.Services
                     throw;
                 }
             }
+
+            if(!_baseConfig.PackageOutputPath.Exists)
+                _baseConfig.PackageOutputPath.Create();
 
             var applications = thingsToPackage
                 .Where(x => x.Value.VersionType == VersionType.Application)
@@ -52,8 +54,9 @@ namespace SFPackager.Services
             {
                 var appData = appList[source.Key];
 
-                Directory.CreateDirectory(appData.PackagePath);
-                CopyApplicationManifestToPackage(appData);
+                var applicationPackagePath = appData.GetPackagePath(_baseConfig.PackageOutputPath);
+                applicationPackagePath.Create();
+                CopyApplicationManifestToPackage(appData, applicationPackagePath);
 
                 var servicesToCopy = thingsToPackage
                     .Where(x => x.Value.VersionType == VersionType.Service)
@@ -61,20 +64,21 @@ namespace SFPackager.Services
                     .Where(x => x.Value.ParentRef.Equals(source.Key))
                     .ToList();
 
-                await CopyServicesToPackage(servicesToCopy, thingsToPackage, appData).ConfigureAwait(false);
+                await CopyServicesToPackage(servicesToCopy, thingsToPackage, appData, applicationPackagePath).ConfigureAwait(false);
             }
         }
 
         private async Task CopyServicesToPackage(
             IEnumerable<KeyValuePair<string, GlobalVersion>> services,
             Dictionary<string, GlobalVersion> thingsToPackage,
-            ServiceFabricApplicationProject appData)
+            ServiceFabricApplicationProject appData,
+            DirectoryInfo basePackagePath)
         {
             foreach (var service in services)
             {
                 var serviceData = appData.Services[service.Key];
 
-                CopyServiceManifest(serviceData, appData);
+                CopyServiceManifest(serviceData, basePackagePath);
 
                 var subPackages = thingsToPackage
                     .Where(x => x.Value.VersionType == VersionType.ServicePackage)
@@ -87,7 +91,7 @@ namespace SFPackager.Services
                     {
                         var package = serviceData.SubPackages
                             .First(x => x.PackageType == PackageType.Code);
-                        var servicePackageFolder = $"{appData.PackagePath}\\{serviceData.ServiceName}\\{package.Name}";
+                        var servicePackageFolder = Path.Combine(basePackagePath.FullName, serviceData.ServiceName, package.Name);
                         var resultCode = _aspNetCorePackager.Package(serviceData.ProjectFolder, servicePackageFolder, _baseConfig.BuildConfiguration);
                         if (resultCode != 0)
                         {
@@ -102,11 +106,13 @@ namespace SFPackager.Services
             }
         }
 
-        private static void CopyServiceManifest(ServiceFabricServiceProject service, ServiceFabricApplicationProject appData)
+        private static void CopyServiceManifest(ServiceFabricServiceProject service, DirectoryInfo basePackagePath)
         {
-            var servicePackageFolder = $"{appData.PackagePath}\\{service.ServiceName}";
-            Directory.CreateDirectory(servicePackageFolder);
-            File.Copy(service.ServiceManifestFileFullPath, $"{servicePackageFolder}\\{service.ServiceManifestFile}");
+            var servicePackageFolder = service.GetServicePackageFolder(basePackagePath);
+            if(!servicePackageFolder.Exists)
+                servicePackageFolder.Create();
+
+            File.Copy(service.SourceServiceManifestPath, service.GetServiceManifestTargetFile(servicePackageFolder).FullName);
         }
 
         private async Task PackageFiles(
@@ -114,6 +120,8 @@ namespace SFPackager.Services
             ServiceFabricServiceProject serviceProject,
             KeyValuePair<string, GlobalVersion> service)
         {
+            var appPackagePath = appData.GetPackagePath(_baseConfig.PackageOutputPath);
+            var servicePackagePath = serviceProject.GetServicePackageFolder(appPackagePath);
             DirectoryInfo directory;
             IEnumerable<FileInfo> files;
             var package = serviceProject.SubPackages
@@ -133,7 +141,7 @@ namespace SFPackager.Services
 
             if (service.Value.PackageType == PackageType.Code)
             {
-                directory = new DirectoryInfo($"{serviceProject.ProjectFolder}{appData.BuildOutputPathSuffix}");
+                directory = new DirectoryInfo(Path.Combine(serviceProject.ProjectFolder, appData.BuildOutputPathSuffix));
                 files = directory
                     .GetFiles("*", SearchOption.AllDirectories)
                     .Where(x => _packageConfig.HashIncludeExtensions.Any(include => x.FullName.ToLowerInvariant().EndsWith(include.ToLowerInvariant())))
@@ -143,7 +151,7 @@ namespace SFPackager.Services
             }
             else
             {
-                directory = new DirectoryInfo($"{serviceProject.PackageRoot}{package.Name}");
+                directory = new DirectoryInfo(Path.Combine(serviceProject.PackageRoot, package.Name));
                 files = directory
                     .GetFiles("*", SearchOption.AllDirectories)
                     .Select(x => x.FullName)
@@ -152,12 +160,14 @@ namespace SFPackager.Services
             }
 
             var basePathLength = directory.FullName.Length;
-            var servicePackageFolder = $"{appData.PackagePath}\\{serviceProject.ServiceName}\\{package.Name}";
-            Directory.CreateDirectory(servicePackageFolder);
+            var subPackageFolder = package.GetSubPackageTargetPath(servicePackagePath);
+            if(!subPackageFolder.Exists)
+                subPackageFolder.Create();
+
             foreach (var file in files)
             {
                 var relPath = file.FullName.Remove(0, basePathLength + 1);
-                var targetFile = new FileInfo($"{servicePackageFolder}\\{relPath}");
+                var targetFile = new FileInfo(Path.Combine(subPackageFolder.FullName, relPath));
                 if (!Directory.Exists(targetFile.DirectoryName))
                     Directory.CreateDirectory(targetFile.DirectoryName);
 
@@ -173,12 +183,13 @@ namespace SFPackager.Services
                 if(!file.IsSuccessful)
                     throw new IOException("Failed to get external file from storage");
 
-                File.WriteAllBytes($"{servicePackageFolder}\\{externalFile.TargetFileName}", file.ResponseContent);
+                File.WriteAllBytes(Path.Combine(subPackageFolder.FullName, externalFile.TargetFileName), file.ResponseContent);
             }
         }
-        private static void CopyApplicationManifestToPackage(ServiceFabricApplicationProject appData)
+
+        private static void CopyApplicationManifestToPackage(ServiceFabricApplicationProject appData, DirectoryInfo applicationPackagePath)
         {
-            File.Copy(appData.ApplicationManifestFileFullPath, appData.AppManifestPackageTarget, true);
+            File.Copy(appData.ApplicationManifestFileFullPath, appData.GetAppManifestTargetFile(applicationPackagePath).FullName, true);
         }
     }
 }
