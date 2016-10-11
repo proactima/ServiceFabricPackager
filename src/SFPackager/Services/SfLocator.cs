@@ -33,7 +33,6 @@ namespace SFPackager.Services
                     {
                         ProjectFile = fileInfo.Name,
                         ProjectFolder = fileInfo.Directory.FullName,
-                        BasePath = Path.GetFullPath(_baseConfig.SolutionFile.FullName),
                         BuildConfiguration = _baseConfig.BuildConfiguration
                     };
                 })
