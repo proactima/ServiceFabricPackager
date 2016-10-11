@@ -9,7 +9,7 @@ The name of the file must match the parameter --configFileName.
 
 ## Example config.json
 
-There is an example config file you can look at: [config.example.json](config.example.json)
+There is an example config file you can look at: [config.example.json](../config.example.json)
 
 # Description of Config Json
 
