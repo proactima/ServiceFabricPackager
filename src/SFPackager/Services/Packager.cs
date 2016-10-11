@@ -136,7 +136,7 @@ namespace SFPackager.Services
                 directory = new DirectoryInfo($"{serviceProject.ProjectFolder}{appData.BuildOutputPathSuffix}");
                 files = directory
                     .GetFiles("*", SearchOption.AllDirectories)
-                    .Where(Constants.IncludeFileFilter)
+                    .Where(x => _packageConfig.HashIncludeExtensions.Any(include => x.FullName.ToLowerInvariant().EndsWith(include.ToLowerInvariant())))
                     .Select(x => x.FullName)
                     .OrderBy(x => x)
                     .Select(x => new FileInfo(x));

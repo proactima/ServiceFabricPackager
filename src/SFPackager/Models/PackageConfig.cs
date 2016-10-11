@@ -8,6 +8,8 @@ namespace SFPackager.Models
         public List<ExternalInclude> ExternalIncludes { get; set; }
         public ClusterConfig Cluster { get; set; }
         public List<EndpointConfig> Endpoints { get; set; }
+        public List<string> HashIncludeExtensions { get; set; }
+        public List<string> HashSpecificExludes { get; set; }
     }
 
     public class EndpointConfig

@@ -15,17 +15,20 @@ namespace SFPackager.Services
         private readonly EndpointAppender _endpointAppender;
         private readonly CertificateAppender _certificateAppender;
         private readonly ConsoleWriter _log;
+        private readonly PackageConfig _packageConfig;
 
         public ServiceHashCalculator(
             EndpointAppender endpointAppender,
             FakeManifestCreator manifestCreator,
             CertificateAppender certificateAppender,
-            ConsoleWriter log)
+            ConsoleWriter log,
+            PackageConfig packageConfig)
         {
             _endpointAppender = endpointAppender;
             _manifestCreator = manifestCreator;
             _certificateAppender = certificateAppender;
             _log = log;
+            _packageConfig = packageConfig;
         }
 
         public Dictionary<string, GlobalVersion> Calculate(ServiceFabricApplicationProject project, VersionNumber currentVersion)
@@ -45,8 +48,8 @@ namespace SFPackager.Services
                     {
                         files = directory
                             .GetFiles("*", SearchOption.AllDirectories)
-                            .Where(Constants.IncludeFileFilter)
-                            .Where(Constants.IgnoreList)
+                            .Where(x => _packageConfig.HashIncludeExtensions.Any(include => x.FullName.ToLowerInvariant().EndsWith(include.ToLowerInvariant())))
+                            .Where(x => _packageConfig.HashSpecificExludes.All(exclude => !x.FullName.ToLowerInvariant().Equals(exclude.ToLowerInvariant())))
                             .Select(x => x.FullName)
                             .OrderBy(x => x);
                     }
