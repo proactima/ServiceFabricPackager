@@ -13,8 +13,8 @@ namespace SFPackager.Helpers
 
         public static string RemovePathFromPath(string path)
         {
-            var fileInfoo = new FileInfo(path);
-            return fileInfoo.Name;
+            var fileInfo = new FileInfo(path);
+            return fileInfo.Name;
         }
 
         public static byte[] ReadFile(string file)
