@@ -25,7 +25,7 @@ namespace SFPackager.Services
         public ServiceFabricServiceProject ReadXml(ServiceFabricServiceProject project, string buildOutputPath)
         {
             var document = new XmlDocument();
-            var rawXml = File.ReadAllText(project.ServiceManifestFileFullPath);
+            var rawXml = File.ReadAllText(project.SourceServiceManifestPath);
             document.LoadXml(rawXml);
             var nsManager = new XmlNamespaceManager(document.NameTable);
             nsManager.AddNamespace("x", "http://schemas.microsoft.com/2011/01/fabric");

@@ -1,7 +1,8 @@
 {
   "profiles": {
     "SFPackager": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-l -p \"c:\\temp\\localpackage\" -f \"config.json\" -s \"d:\\code\\Arcadia\" -b \"Debug\" -i \"testy\" -o \"c:\\temp\\localoutput\" -v"
     }
   }
 }
