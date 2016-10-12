@@ -11,6 +11,7 @@ namespace SFPackager.Models
         public bool UseLocalStorage { get; set; }
         public DirectoryInfo LocalStoragePath { get; set; }
         public string ConfigFileName { get; set; }
+        public FileInfo SolutionFile { get; set; }
         public DirectoryInfo SourcePath { get; set; }
         public string BuildConfiguration { get; set; }
         public string UniqueVersionIdentifier { get; set; }
@@ -34,13 +35,13 @@ namespace SFPackager.Models
             if(!rawConfig.ConfigFileName.HasValue())
                 return new InvalidAppConfig();
 
-            if (!rawConfig.SourcePath.HasValue())
+            if (!rawConfig.SolutionFile.HasValue())
                 return new InvalidAppConfig();
 
             if (!rawConfig.UniqueVersionIdentifier.HasValue())
                 return new InvalidAppConfig();
 
-            return new AppConfig
+            var config = new AppConfig
             {
                 UseAzureStorage = rawConfig.UseAzureStorage.HasValue(),
                 AzureStorageAccountName = rawConfig.AzureStorageAccountName.Value(),
@@ -49,7 +50,7 @@ namespace SFPackager.Models
                 UseLocalStorage = rawConfig.UseLocalStorage.HasValue(),
                 LocalStoragePath = rawConfig.LocalStoragePath.HasValue() ? new DirectoryInfo(rawConfig.LocalStoragePath.Value()) : new DirectoryInfo("c:"),
                 ConfigFileName = rawConfig.ConfigFileName.Value(),
-                SourcePath = new DirectoryInfo(rawConfig.SourcePath.Value()),
+                SolutionFile = new FileInfo(rawConfig.SolutionFile.Value()),
                 BuildConfiguration = rawConfig.BuildConfiguration.HasValue() ? rawConfig.BuildConfiguration.Value() : "Release",
                 UniqueVersionIdentifier = rawConfig.UniqueVersionIdentifier.Value(),
                 UseSecureCluster = rawConfig.UseSecureCluster.HasValue(),
@@ -58,13 +59,17 @@ namespace SFPackager.Models
                 PackageOutputPath = GetPackageOutputPath(rawConfig),
                 VerboseOutput = rawConfig.VerboseOutput.HasValue(),
             };
+
+            config.SourcePath = config.SolutionFile.Directory;
+
+            return config;
         }
 
         private static DirectoryInfo GetPackageOutputPath(AppConfigRaw rawConfig)
         {
             return rawConfig.PackageOutputPath.HasValue()
                 ? new DirectoryInfo(rawConfig.PackageOutputPath.Value())
-                : new DirectoryInfo(Path.Combine(rawConfig.SourcePath.Value(), "sfpackaging"));
+                : new DirectoryInfo(Path.Combine(rawConfig.SolutionFile.Value(), "sfpackaging"));
         }
 
         private static bool AllLocalSettingsHasValue(AppConfigRaw rawConfig)

@@ -11,7 +11,7 @@ namespace SFPackager.Models
         public CommandOption UseLocalStorage { get; set; }
         public CommandOption LocalStoragePath { get; set; }
         public CommandOption ConfigFileName { get; set; }
-        public CommandOption SourcePath { get; set; }
+        public CommandOption SolutionFile { get; set; }
         public CommandOption BuildConfiguration { get; set; }
         public CommandOption UniqueVersionIdentifier { get; set; }
         public CommandOption UseSecureCluster { get; set; }

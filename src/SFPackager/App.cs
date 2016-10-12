@@ -56,7 +56,7 @@ namespace SFPackager
 
         public async Task RunAsync()
         {
-            var sfApplications = _locator.LocateSfApplications();
+            var sfApplications = await _locator.LocateSfApplications().ConfigureAwait(false);
             await _fabricRemote.Init().ConfigureAwait(false);
 
             _log.WriteLine("Trying to read app manifest from deployed applications...");
@@ -118,7 +118,7 @@ namespace SFPackager
                 .SaveFileAsync(fileName, versionJson)
                 .ConfigureAwait(false);
 
-            var basePackagePath = new DirectoryInfo(Path.Combine(_baseConfig.SourcePath.FullName, "sfpackaging"));
+            var basePackagePath = new DirectoryInfo(Path.Combine(_baseConfig.SolutionFile.FullName, "sfpackaging"));
             var things = versions
                 .Where(x => x.Value.VersionType == VersionType.Application)
                 .Where(x => x.Value.IncludeInPackage)

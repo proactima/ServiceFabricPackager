@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using SFPackager.Models;
 
 namespace SFPackager.Services
@@ -10,17 +11,19 @@ namespace SFPackager.Services
     {
         private readonly AppConfig _baseConfig;
         private readonly ConsoleWriter _log;
+        private readonly SolutionParser _solutionParser;
 
-        public SfLocator(AppConfig baseConfig, ConsoleWriter log)
+        public SfLocator(AppConfig baseConfig, ConsoleWriter log, SolutionParser solutionParser)
         {
             _baseConfig = baseConfig;
             _log = log;
+            _solutionParser = solutionParser;
         }
 
-        public List<ServiceFabricApplicationProject> LocateSfApplications()
+        public async Task<List<ServiceFabricApplicationProject>> LocateSfApplications()
         {
             _log.WriteLine("Locating ServiceFabric Applications.");
-            var fileList = _baseConfig.SourcePath.GetFiles("*.sfproj", SearchOption.AllDirectories);
+            var fileList = await _solutionParser.ExtractSolutions(_baseConfig.SolutionFile).ConfigureAwait(false);
 
             var applications = fileList
                 .Select(fileInfo =>
@@ -30,7 +33,7 @@ namespace SFPackager.Services
                     {
                         ProjectFile = fileInfo.Name,
                         ProjectFolder = fileInfo.Directory.FullName,
-                        BasePath = Path.GetFullPath(_baseConfig.SourcePath.FullName),
+                        BasePath = Path.GetFullPath(_baseConfig.SolutionFile.FullName),
                         BuildConfiguration = _baseConfig.BuildConfiguration
                     };
                 })
