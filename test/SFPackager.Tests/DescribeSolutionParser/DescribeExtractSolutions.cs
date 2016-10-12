@@ -20,6 +20,8 @@ namespace SFPackager.Tests.DescribeSolutionParser
             
             // t
             actual.Count.Should().Be(2);
+            actual[0].Name.Should().Be("SfApp1.sfproj");
+            actual[1].Name.Should().Be("SfApp2.sfproj");
         }
     }
 }
