@@ -23,7 +23,7 @@ namespace SFPackager.Services
         public async Task<List<ServiceFabricApplicationProject>> LocateSfApplications()
         {
             _log.WriteLine("Locating ServiceFabric Applications.");
-            var fileList = await _solutionParser.ExtractSolutions(_baseConfig.SolutionFile).ConfigureAwait(false);
+            var fileList = await _solutionParser.ExtractSfProjects(_baseConfig.SolutionFile).ConfigureAwait(false);
 
             var applications = fileList
                 .Select(fileInfo =>

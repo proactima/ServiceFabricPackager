@@ -11,7 +11,7 @@ namespace SFPackager.Services
         private const string ProjectPattern =
             "Project\\(\"{A07B5EB6-E848-4116-A8D0-A826331D98C6}\"\\)\\ =\\ \".*\", \"(.*)\", \"{.*}\"";
 
-        public async Task<List<FileInfo>> ExtractSolutions(FileInfo solutionFile)
+        public async Task<List<FileInfo>> ExtractSfProjects(FileInfo solutionFile)
         {
             if (!solutionFile.Exists)
                 throw new ArgumentException("Solution file not found", nameof(solutionFile));
