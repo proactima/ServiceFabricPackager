@@ -92,7 +92,7 @@ namespace SFPackager.Services
                         var package = serviceData.SubPackages
                             .First(x => x.PackageType == PackageType.Code);
                         var servicePackageFolder = Path.Combine(basePackagePath.FullName, serviceData.ServiceName, package.Name);
-                        var resultCode = _aspNetCorePackager.Package(serviceData.ProjectFolder, servicePackageFolder, _baseConfig.BuildConfiguration);
+                        var resultCode = _aspNetCorePackager.Package(serviceData.ProjectFolder.FullName, servicePackageFolder, _baseConfig.BuildConfiguration);
                         if (resultCode != 0)
                         {
                             throw new InvalidOperationException("Something went wrong packaging ASP.Net Core stuff");
@@ -141,7 +141,7 @@ namespace SFPackager.Services
 
             if (service.Value.PackageType == PackageType.Code)
             {
-                directory = new DirectoryInfo(Path.Combine(serviceProject.ProjectFolder, appData.BuildOutputPathSuffix));
+                directory = new DirectoryInfo(Path.Combine(serviceProject.ProjectFolder.FullName, appData.BuildOutputPathSuffix));
                 files = directory
                     .GetFiles("*", SearchOption.AllDirectories)
                     .Where(x => _packageConfig.HashIncludeExtensions.Any(include => x.FullName.ToLowerInvariant().EndsWith(include.ToLowerInvariant())))
@@ -151,7 +151,7 @@ namespace SFPackager.Services
             }
             else
             {
-                directory = new DirectoryInfo(Path.Combine(serviceProject.PackageRoot, package.Name));
+                directory = new DirectoryInfo(Path.Combine(serviceProject.PackageRoot.FullName, package.Name));
                 files = directory
                     .GetFiles("*", SearchOption.AllDirectories)
                     .Select(x => x.FullName)

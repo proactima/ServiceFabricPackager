@@ -14,7 +14,6 @@ namespace SFPackager.Models
         public Dictionary<string, ServiceFabricServiceProject> Services { get; set; } = new Dictionary<string, ServiceFabricServiceProject>();
         public string ApplicationTypeName { get; set; }
         public string ApplicationTypeVersion { get; set; }
-        public string BasePath { get; set; }
         public string BuildConfiguration { get; set; }
         public string BuildOutputPathSuffix => Path.Combine("bin", "x64", BuildConfiguration);
 
