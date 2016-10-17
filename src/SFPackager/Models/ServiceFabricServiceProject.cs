@@ -5,11 +5,11 @@ namespace SFPackager.Models
 {
     public class ServiceFabricServiceProject
     {
-        public string ProjectFolder { get; set; }
-        public string ProjectFile { get; set; }
+        public DirectoryInfo ProjectFolder { get; set; }
+        public FileInfo ProjectFile { get; set; }
         public string ServiceManifestFile => "ServiceManifest.xml";
-        public string PackageRoot { get; set; }
-        public string SourceServiceManifestPath => Path.Combine(PackageRoot, ServiceManifestFile);
+        public DirectoryInfo PackageRoot => new DirectoryInfo(Path.Combine(ProjectFolder.FullName, "PackageRoot"));
+        public string SourceServiceManifestPath => Path.Combine(PackageRoot.FullName, ServiceManifestFile);
         public string ServiceName { get; set; }
         public string ServiceVersion { get; set; }
         public bool IsAspNetCore { get; set; }
