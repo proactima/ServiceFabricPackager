@@ -25,7 +25,7 @@ namespace SFPackager
                 UseLocalStorage = app.Option("-l|--localStorage", "", CommandOptionType.NoValue),
                 LocalStoragePath = app.Option("-p|--localStoragePath", "", CommandOptionType.SingleValue),
                 ConfigFileName = app.Option("-f|--configFileName", "", CommandOptionType.SingleValue),
-                SourcePath = app.Option("-s|--sourcePath", "", CommandOptionType.SingleValue),
+                SolutionFile = app.Option("-s|--solutionFile", "", CommandOptionType.SingleValue),
                 BuildConfiguration = app.Option("-b|--buildConfiguration", "Default is Release", CommandOptionType.SingleValue),
                 UniqueVersionIdentifier = app.Option("-i|--versionIdentifier", "A reference to the version that is being packaged, i.e. the commit hash", CommandOptionType.SingleValue),
                 UseSecureCluster = app.Option("-e|--secureCluster", "", CommandOptionType.NoValue),

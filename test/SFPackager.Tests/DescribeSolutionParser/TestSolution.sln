@@ -1,0 +1,11 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "SfApp1", "SfApp1\SfApp1.sfproj", "{E141CA31-E653-4B5A-9E23-F4A58F569B43}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service1", "Service1\Service1.csproj", "{91BEA435-C11E-4FA7-9BD2-215A95657C2F}"
+EndProject
+Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "SfApp2", "SfApp2\SfApp2.sfproj", "{A9E4E16D-F2C1-4C64-9A05-A43EA23588AD}"
+EndProject
