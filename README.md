@@ -23,7 +23,7 @@ You'll then end up with the compiled code in ```bin\CONFIGURATION\netcoreapp1.0\
 
 ## How to use
 To create a local package, first build your solution.
-Then run ```sfpackager.exe -l -p "c:\path\to\configfolder" -f "configfile.name" -s "c:\path\to\SF\source\folder" -b "Debug\Release" -i "custom-version-tag"```
+Then run ```sfpackager.exe -l -p "c:\path\to\configfolder" -f "configfile.name" -s "c:\path\to\SF\solution.sln" -b "Debug\Release" -i "custom-version-tag"```
 
 The config folder is a folder on your local drive that the packager will store the version map in and also read the config file from.
 The ```configfile.name``` is the config file for the packager. It should be in the configfolder. An example will be provided below.
