@@ -60,9 +60,9 @@ namespace SFPackager.Services
                 Name = name,
                 Version = document.GetSingleValue($"//x:{packageName}/@Version", nsManager),
                 PackageType = packageType,
-                Path = $"{project.PackageRoot}{name}"
+                Path = Path.Combine(project.PackageRoot.FullName, name)
             };
-
+            
             return configPackage;
         }
     }
