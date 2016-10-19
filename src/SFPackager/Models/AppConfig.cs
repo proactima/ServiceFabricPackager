@@ -20,6 +20,7 @@ namespace SFPackager.Models
         public bool CleanOutputFolder { get; set; }
         public DirectoryInfo PackageOutputPath { get; set; }
         public bool VerboseOutput { get; set; }
+        public DirectoryInfo SelfPath { get; set; }
 
         internal static AppConfig ValidateAndCreate(AppConfigRaw rawConfig)
         {
@@ -40,7 +41,7 @@ namespace SFPackager.Models
 
             if (!rawConfig.UniqueVersionIdentifier.HasValue())
                 return new InvalidAppConfig();
-
+            
             var config = new AppConfig
             {
                 UseAzureStorage = rawConfig.UseAzureStorage.HasValue(),
@@ -58,8 +59,9 @@ namespace SFPackager.Models
                 CleanOutputFolder = rawConfig.CleanOutputFolder.HasValue(),
                 PackageOutputPath = GetPackageOutputPath(rawConfig),
                 VerboseOutput = rawConfig.VerboseOutput.HasValue(),
+                SelfPath = new DirectoryInfo(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location)),
             };
-
+            
             config.SourcePath = config.SolutionFile.Directory;
 
             return config;
