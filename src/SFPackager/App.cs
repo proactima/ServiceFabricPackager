@@ -118,14 +118,13 @@ namespace SFPackager
                 .SaveFileAsync(fileName, versionJson)
                 .ConfigureAwait(false);
 
-            var basePackagePath = new DirectoryInfo(Path.Combine(_baseConfig.SolutionFile.FullName, "sfpackaging"));
             var things = versions
                 .Where(x => x.Value.VersionType == VersionType.Application)
                 .Where(x => x.Value.IncludeInPackage)
                 .Select(x => x.Key)
                 .ToList();
 
-            _scriptCreator.Do(newVersion, basePackagePath, things);
+            _scriptCreator.Do(newVersion, things);
         }
     }
 }

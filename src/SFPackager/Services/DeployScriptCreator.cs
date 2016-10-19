@@ -12,12 +12,16 @@ namespace SFPackager.Services
         private const string BasePackagePathIdentifier = "##BASEPATH##";
         private const string PackagesIdentifier = "##PACKAGES##";
         private const string DeployScriptName = "Deploy-Script.ps1";
+        private readonly AppConfig _appConfig;
 
-        public void Do(VersionNumber newVersion, DirectoryInfo basePackagePath, List<string> packages)
+        public DeployScriptCreator(AppConfig appConfig)
         {
-            var selfAssembly = System.Reflection.Assembly.GetEntryAssembly();
-            var assemblyPath = Path.GetDirectoryName(selfAssembly.Location);
-            var srcScriptLocation = Path.Combine(assemblyPath, DeployScriptName);
+            _appConfig = appConfig;
+        }
+
+        public void Do(VersionNumber newVersion, List<string> packages)
+        {
+            var srcScriptLocation = Path.Combine(_appConfig.SelfPath.FullName, DeployScriptName);
 
             var deployScriptTemplate = new FileInfo(srcScriptLocation);
 
@@ -28,10 +32,10 @@ namespace SFPackager.Services
             var deployScript = File
                 .ReadAllText(deployScriptTemplate.FullName)
                 .Replace(VersionIdentifier, $"\"{newVersion}\"")
-                .Replace(BasePackagePathIdentifier, $"\"{basePackagePath.FullName}\"")
+                .Replace(BasePackagePathIdentifier, $"\"{_appConfig.PackageOutputPath.FullName}\"")
                 .Replace(PackagesIdentifier, packageList);
 
-            var outDeployScript = Path.Combine(basePackagePath.FullName, DeployScriptName);
+            var outDeployScript = Path.Combine(_appConfig.PackageOutputPath.FullName, DeployScriptName);
             File.WriteAllText(outDeployScript, deployScript, Encoding.UTF8);
         }
     }
