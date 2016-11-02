@@ -25,22 +25,22 @@ namespace SFPackager.Models
         internal static AppConfig ValidateAndCreate(AppConfigRaw rawConfig)
         {
             if(IsNoStorageOptionsSet(rawConfig) || IsBothStorageOptionsSet(rawConfig))
-                return new InvalidAppConfig();
+                return new InvalidAppConfig("Invalid storage settings");
 
             if(rawConfig.UseAzureStorage.HasValue() && !AllAzureSettingsHasValue(rawConfig))
-                return new InvalidAppConfig();
+                return new InvalidAppConfig("Missing Azure Storage settings");
 
             if (rawConfig.UseLocalStorage.HasValue() && !AllLocalSettingsHasValue(rawConfig))
-                return new InvalidAppConfig();
+                return new InvalidAppConfig("Missing Local Storage settings");
 
             if(!rawConfig.ConfigFileName.HasValue())
-                return new InvalidAppConfig();
+                return new InvalidAppConfig("Missing config file name");
 
             if (!rawConfig.SolutionFile.HasValue())
-                return new InvalidAppConfig();
+                return new InvalidAppConfig("Missing solution file name");
 
             if (!rawConfig.UniqueVersionIdentifier.HasValue())
-                return new InvalidAppConfig();
+                return new InvalidAppConfig("Missing Unique Version Identifier");
             
             var config = new AppConfig
             {
@@ -101,6 +101,11 @@ namespace SFPackager.Models
 
     internal class InvalidAppConfig : AppConfig
     {
-        
+        public InvalidAppConfig(string message)
+        {
+            Message = message;
+        }
+
+        public string Message { get; set; }
     }
 }
