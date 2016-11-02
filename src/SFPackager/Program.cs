@@ -38,15 +38,22 @@ namespace SFPackager
             var errCode = app.Execute(args);
             if (errCode != 0)
             {
+                Console.WriteLine("Error parsing options...");
+                Console.WriteLine();
+
                 app.ShowHelp();
-                return;
+                Environment.Exit(errCode);
             }
 
             var appConfig = AppConfig.ValidateAndCreate(config);
             if (appConfig is InvalidAppConfig)
             {
+                var invalidConfig = appConfig as InvalidAppConfig;
+                Console.WriteLine(invalidConfig.Message);
+                Console.WriteLine();
+
                 app.ShowHelp();
-                return;
+                Environment.Exit(-1);
             }
             
             try

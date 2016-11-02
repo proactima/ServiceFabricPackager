@@ -43,13 +43,13 @@ namespace SFPackager.Services
                     var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                     var directory = new DirectoryInfo(subPackage.Path);
                     IOrderedEnumerable<string> files;
-
+                    
                     if (subPackage.PackageType == PackageType.Code)
                     {
                         files = directory
                             .GetFiles("*", SearchOption.AllDirectories)
-                            .Where(x => _packageConfig.HashIncludeExtensions.Any(include => x.FullName.ToLowerInvariant().EndsWith(include.ToLowerInvariant())))
-                            .Where(x => _packageConfig.HashSpecificExludes.All(exclude => !x.FullName.ToLowerInvariant().Equals(exclude.ToLowerInvariant())))
+                            .Where(x => _packageConfig.HashIncludeExtensions.Any(include => x.FullName.EndsWith(include, StringComparison.CurrentCultureIgnoreCase)))
+                            .Where(x => _packageConfig.HashSpecificExludes.All(exclude => !x.FullName.ToLowerInvariant().Contains(exclude.ToLowerInvariant())))
                             .Select(x => x.FullName)
                             .OrderBy(x => x);
                     }

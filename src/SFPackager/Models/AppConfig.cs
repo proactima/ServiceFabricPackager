@@ -20,27 +20,28 @@ namespace SFPackager.Models
         public bool CleanOutputFolder { get; set; }
         public DirectoryInfo PackageOutputPath { get; set; }
         public bool VerboseOutput { get; set; }
+        public DirectoryInfo SelfPath { get; set; }
 
         internal static AppConfig ValidateAndCreate(AppConfigRaw rawConfig)
         {
             if(IsNoStorageOptionsSet(rawConfig) || IsBothStorageOptionsSet(rawConfig))
-                return new InvalidAppConfig();
+                return new InvalidAppConfig("Invalid storage settings");
 
             if(rawConfig.UseAzureStorage.HasValue() && !AllAzureSettingsHasValue(rawConfig))
-                return new InvalidAppConfig();
+                return new InvalidAppConfig("Missing Azure Storage settings");
 
             if (rawConfig.UseLocalStorage.HasValue() && !AllLocalSettingsHasValue(rawConfig))
-                return new InvalidAppConfig();
+                return new InvalidAppConfig("Missing Local Storage settings");
 
             if(!rawConfig.ConfigFileName.HasValue())
-                return new InvalidAppConfig();
+                return new InvalidAppConfig("Missing config file name");
 
             if (!rawConfig.SolutionFile.HasValue())
-                return new InvalidAppConfig();
+                return new InvalidAppConfig("Missing solution file name");
 
             if (!rawConfig.UniqueVersionIdentifier.HasValue())
-                return new InvalidAppConfig();
-
+                return new InvalidAppConfig("Missing Unique Version Identifier");
+            
             var config = new AppConfig
             {
                 UseAzureStorage = rawConfig.UseAzureStorage.HasValue(),
@@ -58,8 +59,9 @@ namespace SFPackager.Models
                 CleanOutputFolder = rawConfig.CleanOutputFolder.HasValue(),
                 PackageOutputPath = GetPackageOutputPath(rawConfig),
                 VerboseOutput = rawConfig.VerboseOutput.HasValue(),
+                SelfPath = new DirectoryInfo(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location)),
             };
-
+            
             config.SourcePath = config.SolutionFile.Directory;
 
             return config;
@@ -99,6 +101,11 @@ namespace SFPackager.Models
 
     internal class InvalidAppConfig : AppConfig
     {
-        
+        public InvalidAppConfig(string message)
+        {
+            Message = message;
+        }
+
+        public string Message { get; set; }
     }
 }
