@@ -7,5 +7,8 @@ namespace SFPackager.Models.Xml.Elements
     {
         [XmlElement("EndpointBindingPolicy")]
         public List<EndpointBindingPolicy> EndpointBindingPolicy { get; set; }
+
+        [XmlElement("SecurityAccessPolicies")]
+        public SecurityAccessPolicies SecurityAccessPolicies { get; set; }
     }
 }

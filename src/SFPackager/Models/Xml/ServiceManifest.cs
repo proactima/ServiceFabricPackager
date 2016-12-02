@@ -1,4 +1,5 @@
-﻿using System.Xml.Serialization;
+﻿using System.Collections.Generic;
+using System.Xml.Serialization;
 using SFPackager.Models.Xml.Elements;
 
 namespace SFPackager.Models.Xml
@@ -20,6 +21,9 @@ namespace SFPackager.Models.Xml
 
         [XmlElement("ConfigPackage")]
         public ConfigPackage ConfigPackage { get; set; }
+
+        [XmlElement("DataPackage")]
+        public List<DataPackage> DataPackages { get; set; }
 
         [XmlElement("Resources")]
         public Resources Resources { get; set; }

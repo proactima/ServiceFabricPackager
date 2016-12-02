@@ -7,5 +7,8 @@ namespace SFPackager.Models.Xml.Elements
     {
         [XmlElement("EndpointCertificate")]
         public List<EndpointCertificate> EndpointCertificates { get; set; }
+
+        [XmlElement("SecretsCertificate")]
+        public List<SecretsCertificate> SecretsCertificate { get; set; }
     }
 }

@@ -22,6 +22,12 @@ namespace SFPackager.Models.Xml
         [XmlElement("DefaultServices")]
         public DefaultServices DefaultServices { get; set; }
 
+        [XmlElement("Principals")]
+        public Principals Principals { get; set; }
+
+        [XmlElement("Policies")]
+        public Policies Policies { get; set; }
+
         [XmlElement("Certificates")]
         public Certificates Certificates { get; set; }
     }

@@ -19,6 +19,7 @@ namespace SFPackager
         private readonly ServiceHashCalculator _hasher;
         private readonly SfLocator _locator;
         private readonly ManifestWriter _manifestWriter;
+        private readonly ManifestReader _manifestReader;
         private readonly Packager _packager;
         private readonly SfProjectHandler _projectHandler;
         private readonly VersionHandler _versionHandler;
@@ -38,7 +39,8 @@ namespace SFPackager
             ManifestWriter manifestWriter,
             AppConfig baseConfig,
             DeployScriptCreator scriptCreator,
-            ConsoleWriter log)
+            ConsoleWriter log,
+            ManifestReader manifestReader)
         {
             _blobService = blobService;
             _locator = locator;
@@ -52,6 +54,7 @@ namespace SFPackager
             _baseConfig = baseConfig;
             _scriptCreator = scriptCreator;
             _log = log;
+            _manifestReader = manifestReader;
         }
 
         public async Task RunAsync()
@@ -109,7 +112,8 @@ namespace SFPackager
                 .ConfigureAwait(false);
 
             _log.WriteLine("Updating manifests");
-            _manifestWriter.UpdateManifests(versions, parsedApplications);
+            _manifestReader.Handle(versions, parsedApplications);
+            //_manifestWriter.UpdateManifests(versions, parsedApplications);
 
             _log.WriteLine($"Storing version map for {newVersion}", LogLevel.Info);
             var versionJson = JsonConvert.SerializeObject(versions);
