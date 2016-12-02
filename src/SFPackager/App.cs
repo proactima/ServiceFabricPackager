@@ -18,8 +18,7 @@ namespace SFPackager
         private readonly IHandleClusterConnection _fabricRemote;
         private readonly ServiceHashCalculator _hasher;
         private readonly SfLocator _locator;
-        private readonly ManifestWriter _manifestWriter;
-        private readonly ManifestReader _manifestReader;
+        private readonly ManifestHandler _manifestReader;
         private readonly Packager _packager;
         private readonly SfProjectHandler _projectHandler;
         private readonly VersionHandler _versionHandler;
@@ -36,11 +35,10 @@ namespace SFPackager
             VersionHandler versionHandler,
             VersionService versionService,
             Packager packager,
-            ManifestWriter manifestWriter,
             AppConfig baseConfig,
             DeployScriptCreator scriptCreator,
             ConsoleWriter log,
-            ManifestReader manifestReader)
+            ManifestHandler manifestReader)
         {
             _blobService = blobService;
             _locator = locator;
@@ -50,7 +48,6 @@ namespace SFPackager
             _versionHandler = versionHandler;
             _versionService = versionService;
             _packager = packager;
-            _manifestWriter = manifestWriter;
             _baseConfig = baseConfig;
             _scriptCreator = scriptCreator;
             _log = log;
