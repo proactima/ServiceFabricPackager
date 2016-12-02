@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Xml.Serialization;
 
-namespace SFPackager.Services
+namespace SFPackager.Services.Manifest
 {
     public class ManifestLoader<T>
     {
@@ -25,12 +25,19 @@ namespace SFPackager.Services
             return manifest;
         }
 
-        public void Save(T appManifest, string manifestPath)
+        public void Save(T manifest, string manifestPath)
         {
             using (var writer = new FileStream(manifestPath, FileMode.OpenOrCreate, FileAccess.Write))
             {
-                _serializer.Serialize(writer, appManifest);
+                _serializer.Serialize(writer, manifest);
             }
+        }
+
+        public Stream Save(T manifest, Stream outStream)
+        {
+            _serializer.Serialize(outStream, manifest);
+
+            return outStream;
         }
     }
 }

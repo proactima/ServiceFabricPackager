@@ -8,6 +8,7 @@ using SFPackager.Helpers;
 using SFPackager.Interfaces;
 using SFPackager.Models;
 using SFPackager.Services;
+using SFPackager.Services.Manifest;
 
 namespace SFPackager
 {
@@ -110,7 +111,6 @@ namespace SFPackager
 
             _log.WriteLine("Updating manifests");
             _manifestReader.Handle(versions, parsedApplications);
-            //_manifestWriter.UpdateManifests(versions, parsedApplications);
 
             _log.WriteLine($"Storing version map for {newVersion}", LogLevel.Info);
             var versionJson = JsonConvert.SerializeObject(versions);

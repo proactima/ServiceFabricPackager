@@ -3,6 +3,7 @@ using System.IO;
 using System.Xml;
 using SFPackager.Helpers;
 using SFPackager.Models;
+using SFPackager.Services.Manifest;
 
 namespace SFPackager.Services
 {

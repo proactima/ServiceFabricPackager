@@ -8,8 +8,7 @@
       "target": "project"
     },
     "FluentAssertions": "4.16.0",
-    "Microsoft.NETCore.App": "1.0.1"
-  },
+    "Microsoft.NETCore.App": "1.0.1"  },
   "runtimes": {
     "win7-x64": {},
     "win8-x64": {},

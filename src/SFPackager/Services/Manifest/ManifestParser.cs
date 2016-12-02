@@ -3,7 +3,7 @@ using System.Xml;
 using SFPackager.Helpers;
 using SFPackager.Models;
 
-namespace SFPackager.Services
+namespace SFPackager.Services.Manifest
 {
     public class ManifestParser
     {
