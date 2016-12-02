@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<assemblies>
+  <assembly name="SFPackager.Tests.dll" environment="64-bit .NET (unknown version) [collection-per-class, parallel (8 threads)]" test-framework="xUnit.net 2.2.0.3402" run-date="2016-11-02" run-time="14:44:06" total="8" passed="7" failed="1" skipped="0" time="0.372" errors="0">
+    <errors />
+    <collection total="1" passed="1" failed="0" skipped="0" name="Test collection for SFPackager.Tests.DescribeSfProjectHandler.DesribeExtractApplicationManifest" time="0.113">
+      <test name="SFPackager.Tests.DescribeSfProjectHandler.DesribeExtractApplicationManifest.ItShouldExtractApplicationPackageRootFromSfProj" type="SFPackager.Tests.DescribeSfProjectHandler.DesribeExtractApplicationManifest" method="ItShouldExtractApplicationPackageRootFromSfProj" time="0.1133675" result="Pass" />
+    </collection>
+    <collection total="4" passed="4" failed="0" skipped="0" name="Test collection for SFPackager.Tests.DescribeVersionService.DescribeSetVersionsIfVersionIsDeployed" time="0.206">
+      <test name="SFPackager.Tests.DescribeVersionService.DescribeSetVersionsIfVersionIsDeployed.WhenAllHasChanged" type="SFPackager.Tests.DescribeVersionService.DescribeSetVersionsIfVersionIsDeployed" method="WhenAllHasChanged" time="0.1989319" result="Pass" />
+      <test name="SFPackager.Tests.DescribeVersionService.DescribeSetVersionsIfVersionIsDeployed.WhenAddingANewService" type="SFPackager.Tests.DescribeVersionService.DescribeSetVersionsIfVersionIsDeployed" method="WhenAddingANewService" time="0.003233" result="Pass" />
+      <test name="SFPackager.Tests.DescribeVersionService.DescribeSetVersionsIfVersionIsDeployed.WhenOnlySomeHasChangedComplex" type="SFPackager.Tests.DescribeVersionService.DescribeSetVersionsIfVersionIsDeployed" method="WhenOnlySomeHasChangedComplex" time="0.0027608" result="Pass" />
+      <test name="SFPackager.Tests.DescribeVersionService.DescribeSetVersionsIfVersionIsDeployed.WhenOnlySomeHasChanged" type="SFPackager.Tests.DescribeVersionService.DescribeSetVersionsIfVersionIsDeployed" method="WhenOnlySomeHasChanged" time="0.0015386" result="Pass" />
+    </collection>
+    <collection total="1" passed="0" failed="1" skipped="0" name="Test collection for SFPackager.Tests.DescribeManifest.DescribePrincipalAppender" time="0.111">
+      <test name="SFPackager.Tests.DescribeManifest.DescribePrincipalAppender.Test" type="SFPackager.Tests.DescribeManifest.DescribePrincipalAppender" method="Test" time="0.1109842" result="Fail">
+        <failure exception-type="System.IO.FileNotFoundException">
+          <message><![CDATA[System.IO.FileNotFoundException : Could not find file 'D:\\code\\uxrisk\\SFPackager\\test\\SFPackager.Tests\\DescribeManifest\\ActualPolicyApplicationManifest.xml'.]]></message>
+          <stack-trace><![CDATA[   at System.IO.Win32FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, FileStream parent)
+   at System.IO.Win32FileSystem.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, FileStream parent)
+   at System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options)
+   at System.IO.FileStream..ctor(String path, FileMode mode)
+   at SFPackager.Tests.DescribeManifest.DescribePrincipalAppender.Test() in D:\code\uxrisk\SFPackager\test\SFPackager.Tests\DescribeManifest\DescribePrincipalAppender.cs:line 52]]></stack-trace>
+        </failure>
+      </test>
+    </collection>
+    <collection total="1" passed="1" failed="0" skipped="0" name="Test collection for SFPackager.Tests.DescribeVersionService.DescribeSetVersionIfNoneIsDeployed" time="0.027">
+      <test name="SFPackager.Tests.DescribeVersionService.DescribeSetVersionIfNoneIsDeployed.ItShouldSetVersionOnAllItems" type="SFPackager.Tests.DescribeVersionService.DescribeSetVersionIfNoneIsDeployed" method="ItShouldSetVersionOnAllItems" time="0.0272069" result="Pass" />
+    </collection>
+    <collection total="1" passed="1" failed="0" skipped="0" name="Test collection for SFPackager.Tests.DescribeSolutionParser.DescribeExtractSolutions" time="0.066">
+      <test name="SFPackager.Tests.DescribeSolutionParser.DescribeExtractSolutions.Stuff" type="SFPackager.Tests.DescribeSolutionParser.DescribeExtractSolutions" method="Stuff" time="0.0658413" result="Pass" />
+    </collection>
+  </assembly>
+</assemblies>

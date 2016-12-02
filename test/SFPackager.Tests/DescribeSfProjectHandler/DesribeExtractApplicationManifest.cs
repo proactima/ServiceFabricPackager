@@ -24,10 +24,10 @@ namespace SFPackager.Tests.DescribeSfProjectHandler
                 var manager = new XmlNamespaceManager(document.NameTable);
                 manager.AddNamespace("x", "http://schemas.microsoft.com/developer/msbuild/2003");
 
-                actual = SfProjectHandler.ExtractApplicationManifest(@"c:", document, manager);
+                actual = SfProjectHandler.ExtractApplicationManifest(@"C:\", document, manager);
             }
 
-            actual.Should().Be("C:\\ApplicationPackageRoot\\");
+            actual.Should().Be("C:\\ApplicationPackageRoot");
         }
     }
 }

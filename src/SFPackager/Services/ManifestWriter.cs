@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using System.Xml.Serialization;
 using SFPackager.Helpers;
 using SFPackager.Models;
 using SFPackager.Services.Manifest;
@@ -17,19 +18,25 @@ namespace SFPackager.Services
         private readonly EndpointAppender _endpointAppender;
         private readonly AppManifestCleaner _appManifestCleaner;
         private readonly AppConfig _baseConfig;
+        private readonly PolicyAppender _policyAppender;
+        private readonly PrincipalAppender _principalAppender;
 
         public ManifestWriter(
             CertificateAppender certAppender,
             ServiceImportMutator serviceImport,
             EndpointAppender endpointAppender,
             AppManifestCleaner appManifestCleaner,
-            AppConfig baseConfig)
+            AppConfig baseConfig,
+            PolicyAppender policyAppender,
+            PrincipalAppender principalAppender)
         {
             _certAppender = certAppender;
             _serviceImport = serviceImport;
             _endpointAppender = endpointAppender;
             _appManifestCleaner = appManifestCleaner;
             _baseConfig = baseConfig;
+            _policyAppender = policyAppender;
+            _principalAppender = principalAppender;
         }
 
         public void UpdateManifests(
@@ -52,10 +59,13 @@ namespace SFPackager.Services
                 appDocument.LoadXml(rawAppXml);
                 var appNsManager = new XmlNamespaceManager(appDocument.NameTable);
                 appNsManager.AddNamespace("x", NamespaceString);
-
+                
                 appDocument.SetSingleValue("//x:ApplicationManifest/@ApplicationTypeVersion",
                     app.Value.Version.ToString(), appNsManager);
                 var serviceNames = appData.Services.Select(x => x.Key).ToList();
+
+                _principalAppender.SetPrincipals(appDocument, appData.ApplicationTypeName);
+                _policyAppender.SetPolicies(appDocument, appData.ApplicationTypeName);
 
                 _serviceImport.Execute(appDocument, versions);
                 _certAppender.SetCertificates(appDocument, appData.ApplicationTypeName, serviceNames);

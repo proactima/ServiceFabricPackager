@@ -87,7 +87,7 @@ namespace SFPackager
             {
                 var project = _projectHandler.Parse(sfApplication, _baseConfig.SourcePath);
                 parsedApplications.Add(project.ApplicationTypeName, project);
-                var serviceVersions = _hasher.Calculate(project, currentVersion);
+                var serviceVersions = await _hasher.Calculate(project, currentVersion).ConfigureAwait(false);
 
                 serviceVersions.ForEach(service => { versions.Add(service.Key, service.Value); });
             }

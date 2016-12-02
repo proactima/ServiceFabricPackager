@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using System.Xml;
+using SFPackager.Interfaces;
 using SFPackager.Models;
 using SFPackager.Services.Manifest;
 
@@ -16,22 +18,25 @@ namespace SFPackager.Services
         private readonly CertificateAppender _certificateAppender;
         private readonly ConsoleWriter _log;
         private readonly PackageConfig _packageConfig;
+        private readonly IHandleFiles _fileHandler;
 
         public ServiceHashCalculator(
             EndpointAppender endpointAppender,
             FakeManifestCreator manifestCreator,
             CertificateAppender certificateAppender,
             ConsoleWriter log,
-            PackageConfig packageConfig)
+            PackageConfig packageConfig,
+            IHandleFiles fileHandler)
         {
             _endpointAppender = endpointAppender;
             _manifestCreator = manifestCreator;
             _certificateAppender = certificateAppender;
             _log = log;
             _packageConfig = packageConfig;
+            _fileHandler = fileHandler;
         }
 
-        public Dictionary<string, GlobalVersion> Calculate(ServiceFabricApplicationProject project, VersionNumber currentVersion)
+        public async Task<Dictionary<string, GlobalVersion>> Calculate(ServiceFabricApplicationProject project, VersionNumber currentVersion)
         {
             var projectHashes = new Dictionary<string, GlobalVersion>();
 
@@ -64,6 +69,31 @@ namespace SFPackager.Services
                     foreach (var data in files.Select(File.ReadAllBytes))
                     {
                         hasher.AppendData(data);
+                    }
+
+                    var externalIncludes = _packageConfig
+                        .ExternalIncludes
+                        .Where(x => x
+                            .ApplicationTypeName.Equals(project.ApplicationTypeName,
+                            StringComparison.CurrentCultureIgnoreCase))
+                        .Where(x => x
+                            .ServiceManifestName.Equals(service.Value.ServiceName,
+                            StringComparison.CurrentCultureIgnoreCase))
+                        .Where(x => x
+                            .PackageName.Equals(subPackage.Name,
+                            StringComparison.CurrentCultureIgnoreCase))
+                        .OrderBy(x => x.SourceFileName);
+
+                    foreach (var externalFile in externalIncludes)
+                    {
+                        var file = await _fileHandler
+                            .GetFileAsBytesAsync(externalFile.SourceFileName)
+                            .ConfigureAwait(false);
+
+                        if (!file.IsSuccessful)
+                            throw new IOException("Failed to get external file from storage");
+
+                        hasher.AppendData(file.ResponseContent);
                     }
 
                     var finalHash = hasher.GetHashAndReset();

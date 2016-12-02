@@ -10,6 +10,15 @@ namespace SFPackager.Models
         public List<EndpointConfig> Endpoints { get; set; }
         public List<string> HashIncludeExtensions { get; set; }
         public List<string> HashSpecificExludes { get; set; }
+        public List<Encipherment> Encipherment { get; set; }
+    }
+
+    public class Encipherment
+    {
+        public string ApplicationTypeName { get; set; }
+        public string Name { get; set; }
+        public string CertName { get; set; }
+        public string CertThumbprint { get; set; }
     }
 
     public class EndpointConfig

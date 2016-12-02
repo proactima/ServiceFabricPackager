@@ -25,7 +25,12 @@ namespace SFPackager.Services.Manifest
                 .OrderBy(x => x.CertThumbprint)
                 .ToList();
 
-            if (!httpsCerts.Any())
+            var secretCerts = _packageConfig
+                .Encipherment
+                .Where(x => x.ApplicationTypeName.Equals(applicationTypeName))
+                .ToList();
+
+            if (!httpsCerts.Any() && !secretCerts.Any())
                 return;
 
             var certificateElement = document.CreateElement("Certificates", NamespaceString);
@@ -44,18 +49,26 @@ namespace SFPackager.Services.Manifest
                 certGroup.ForEach(cert =>
                 {
                     var serviceManifestNode = document.GetNode($"//x:ApplicationManifest/x:ServiceManifestImport/x:ServiceManifestRef[@ServiceManifestName='{cert.ServiceManifestName}']", nsManager);
-                    if (serviceManifestNode == null)
-                        return;
-
-                    var importNode = serviceManifestNode.ParentNode;
                     var policyNode = document.CreateElement("Policies", NamespaceString);
                     var bindingNode = document.CreateElement("EndpointBindingPolicy", NamespaceString);
                     bindingNode.SetAttribute("EndpointRef", cert.EndpointName);
                     bindingNode.SetAttribute("CertificateRef", certName);
                     policyNode.AppendChild(bindingNode);
+
+                    var importNode = serviceManifestNode.ParentNode;
                     importNode.AppendChild(policyNode);
                 });
             });
+
+            foreach (var encipherment in secretCerts)
+            {
+                var secretElement = document.CreateElement("SecretsCertificate", NamespaceString);
+                secretElement.SetAttribute("Name", encipherment.CertName);
+                secretElement.SetAttribute("X509FindType", "FindByThumbprint");
+                secretElement.SetAttribute("X509FindValue", encipherment.CertThumbprint);
+
+                certificateElement.AppendChild(secretElement);
+            }
 
             var root = document.GetNode("//x:ApplicationManifest", nsManager);
             root.AppendChild(certificateElement);
