@@ -7,12 +7,13 @@
   "dependencies": {
     "Microsoft.AspNetCore.WebUtilities": "1.0.0",
     "Microsoft.Extensions.CommandLineUtils": "1.0.0",
-    "Microsoft.NETCore.App": "1.0.0",
+    "Microsoft.NETCore.App": "1.0.1",
     "Newtonsoft.Json": "9.0.1",
-    "SimpleInjector": "3.2.0",
+    "SimpleInjector": "3.2.5",
     "System.Net.Http": "4.1.0",
     "System.Runtime.Serialization.Xml": "4.1.1",
     "System.Xml.XDocument": "4.0.11",
+    "System.Xml.XmlSerializer": "4.0.11",
     "System.Xml.XPath": "4.0.1",
     "System.Xml.XPath.XDocument": "4.0.1",
     "System.Xml.XPath.XmlDocument": "4.0.1"

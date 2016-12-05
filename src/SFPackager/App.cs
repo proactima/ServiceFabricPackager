@@ -8,6 +8,7 @@ using SFPackager.Helpers;
 using SFPackager.Interfaces;
 using SFPackager.Models;
 using SFPackager.Services;
+using SFPackager.Services.Manifest;
 
 namespace SFPackager
 {
@@ -18,7 +19,7 @@ namespace SFPackager
         private readonly IHandleClusterConnection _fabricRemote;
         private readonly ServiceHashCalculator _hasher;
         private readonly SfLocator _locator;
-        private readonly ManifestWriter _manifestWriter;
+        private readonly ManifestHandler _manifestReader;
         private readonly Packager _packager;
         private readonly SfProjectHandler _projectHandler;
         private readonly VersionHandler _versionHandler;
@@ -35,10 +36,10 @@ namespace SFPackager
             VersionHandler versionHandler,
             VersionService versionService,
             Packager packager,
-            ManifestWriter manifestWriter,
             AppConfig baseConfig,
             DeployScriptCreator scriptCreator,
-            ConsoleWriter log)
+            ConsoleWriter log,
+            ManifestHandler manifestReader)
         {
             _blobService = blobService;
             _locator = locator;
@@ -48,10 +49,10 @@ namespace SFPackager
             _versionHandler = versionHandler;
             _versionService = versionService;
             _packager = packager;
-            _manifestWriter = manifestWriter;
             _baseConfig = baseConfig;
             _scriptCreator = scriptCreator;
             _log = log;
+            _manifestReader = manifestReader;
         }
 
         public async Task RunAsync()
@@ -87,7 +88,7 @@ namespace SFPackager
             {
                 var project = _projectHandler.Parse(sfApplication, _baseConfig.SourcePath);
                 parsedApplications.Add(project.ApplicationTypeName, project);
-                var serviceVersions = _hasher.Calculate(project, currentVersion);
+                var serviceVersions = await _hasher.Calculate(project, currentVersion).ConfigureAwait(false);
 
                 serviceVersions.ForEach(service => { versions.Add(service.Key, service.Value); });
             }
@@ -109,7 +110,7 @@ namespace SFPackager
                 .ConfigureAwait(false);
 
             _log.WriteLine("Updating manifests");
-            _manifestWriter.UpdateManifests(versions, parsedApplications);
+            _manifestReader.Handle(versions, parsedApplications);
 
             _log.WriteLine($"Storing version map for {newVersion}", LogLevel.Info);
             var versionJson = JsonConvert.SerializeObject(versions);

@@ -1,22 +1,22 @@
-﻿{
+{
   "version": "1.0.0-*",
   "testRunner": "xunit",
   "dependencies": {
-    "xunit": "2.2.0-beta2-build3300",
-    "FluentAssertions": "4.13.0",
+    "xunit": "2.2.0-beta3-build3402",
     "dotnet-test-xunit": "2.2.0-preview2-build1029",
     "SFPackager": {
       "target": "project"
-    }
+    },
+    "FluentAssertions": "4.16.0",
+    "Microsoft.NETCore.App": "1.0.1"  },
+  "runtimes": {
+    "win7-x64": {},
+    "win8-x64": {},
+    "win81-x64": {},
+    "win10-x64": {},
+    "ubuntu.14.04-x64": {}
   },
   "frameworks": {
-    "netcoreapp1.0": {
-      "dependencies": {
-        "Microsoft.NETCore.App": {
-          "type": "platform",
-          "version": "1.0.0"
-        }
-      }
-    }
+    "netcoreapp1.0": {}
   }
 }
