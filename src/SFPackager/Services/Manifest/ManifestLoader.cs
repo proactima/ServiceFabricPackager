@@ -27,7 +27,7 @@ namespace SFPackager.Services.Manifest
 
         public void Save(T manifest, string manifestPath)
         {
-            using (var writer = new FileStream(manifestPath, FileMode.OpenOrCreate, FileAccess.Write))
+            using (var writer = new FileStream(manifestPath, FileMode.Truncate, FileAccess.Write))
             {
                 _serializer.Serialize(writer, manifest);
             }

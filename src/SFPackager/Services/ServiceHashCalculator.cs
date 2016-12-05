@@ -145,7 +145,7 @@ namespace SFPackager.Services
 
             var serviceNames = project.Services.Select(x => x.Key).ToList();
 
-            var appManifest = _appManifestLoader.Load("");
+            var appManifest = _appManifestLoader.Load(project.ApplicationManifestFileFullPath);
             _manifestHandler.CleanAppManifest(appManifest);
             _handleEndpointCert.SetEndpointCerts(_packageConfig, appManifest, project.ApplicationTypeName);
             _handleEnciphermentCert.SetEnciphermentCerts(_packageConfig, appManifest, project.ApplicationTypeName);
