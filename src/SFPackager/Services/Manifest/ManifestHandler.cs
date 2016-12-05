@@ -165,6 +165,12 @@ namespace SFPackager.Services.Manifest
 
                 if (endpointConfig.Port != 0)
                     endpoint.Port = endpointConfig.Port.ToString();
+
+                endpointList
+                    .Where(x => x.Name.Equals(endpointConfig.EndpointName))
+                    .ForEach(x => endpointList.Remove(x));
+
+                endpointList.Add(endpoint);
             }
 
             serviceManifest.Resources.Endpoints.Endpoint = endpointList;
