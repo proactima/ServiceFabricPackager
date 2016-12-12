@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SFPackager.Helpers;
 using SFPackager.Models;
 using SFPackager.Models.Xml;
 using SFPackager.Models.Xml.Elements;
@@ -11,12 +9,14 @@ namespace SFPackager.Services.Manifest
 {
     public class ManifestHandler
     {
+        private readonly ApplicationManifestHandler _appManifestHandler;
         private readonly ManifestLoader<ApplicationManifest> _appManifestLoader;
         private readonly AppConfig _baseConfig;
-        private readonly PackageConfig _packageConfig;
-        private readonly ManifestLoader<ServiceManifest> _serviceManifestLoader;
         private readonly HandleEnciphermentCert _handleEnciphermentCert;
         private readonly HandleEndpointCert _handleEndpointCert;
+        private readonly PackageConfig _packageConfig;
+        private readonly ServiceManifestHandler _serviceManifestHandler;
+        private readonly ManifestLoader<ServiceManifest> _serviceManifestLoader;
 
         public ManifestHandler(
             AppConfig baseConfig,
@@ -24,7 +24,9 @@ namespace SFPackager.Services.Manifest
             ManifestLoader<ApplicationManifest> appManifestLoader,
             ManifestLoader<ServiceManifest> serviceManifestLoader,
             HandleEnciphermentCert handleEnciphermentCert,
-            HandleEndpointCert handleEndpointCert)
+            HandleEndpointCert handleEndpointCert,
+            ApplicationManifestHandler appManifestHandler,
+            ServiceManifestHandler serviceManifestHandler)
         {
             _baseConfig = baseConfig;
             _packageConfig = packageConfig;
@@ -32,6 +34,8 @@ namespace SFPackager.Services.Manifest
             _serviceManifestLoader = serviceManifestLoader;
             _handleEnciphermentCert = handleEnciphermentCert;
             _handleEndpointCert = handleEndpointCert;
+            _appManifestHandler = appManifestHandler;
+            _serviceManifestHandler = serviceManifestHandler;
         }
 
         public void Handle(
@@ -52,7 +56,7 @@ namespace SFPackager.Services.Manifest
                 var appManifest = _appManifestLoader.Load(packagedAppManifest.FullName);
 
                 CleanAppManifest(appManifest);
-                SetGeneralInfo(appManifest, versions, app.Value.ToString());
+                _appManifestHandler.SetGeneralInfo(appManifest, versions, app.Value);
                 _handleEndpointCert.SetEndpointCerts(_packageConfig, appManifest, appData.ApplicationTypeName);
                 _handleEnciphermentCert.SetEnciphermentCerts(_packageConfig, appManifest, appData.ApplicationTypeName);
 
@@ -71,60 +75,14 @@ namespace SFPackager.Services.Manifest
                         serviceData.ServiceManifestFile);
                     var serviceManifest = _serviceManifestLoader.Load(packagedServiceManifest);
 
-                    SetServiceManifestGeneral(serviceManifest, service.Value);
+                    _serviceManifestHandler.SetServiceManifestGeneral(serviceManifest, service.Value);
                     SetServiceEndpoints(serviceManifest, appData.ApplicationTypeName, serviceData.ServiceName);
 
-                    SetServicePackagesData(serviceManifest, versions, service.Key);
+                    _serviceManifestHandler.SetServicePackagesData(serviceManifest, versions, service.Key);
 
                     _serviceManifestLoader.Save(serviceManifest, packagedServiceManifest);
                 }
             }
-        }
-
-        public void SetServicePackagesData(
-            ServiceManifest serviceManifest,
-            Dictionary<string, GlobalVersion> versions,
-            string parentRef)
-        {
-            var subPackages = versions
-                .Where(x => x.Value.ParentRef.Equals(parentRef))
-                .ToList();
-
-            foreach (var package in subPackages)
-            {
-                var packageName = package.Key.Split('-')[1];
-
-                switch (package.Value.PackageType)
-                {
-                    case PackageType.Code:
-                        serviceManifest.CodePackage.Version = package.Value.Version.ToString();
-                        break;
-                    case PackageType.Config:
-                        serviceManifest.ConfigPackage.Version = package.Value.Version.ToString();
-                        break;
-                    case PackageType.Data:
-                        var dataPackages = serviceManifest
-                            .DataPackages
-                            .Where(x => x.Name.Equals(packageName))
-                            .ToList();
-                        if (!dataPackages.Any())
-                            return;
-
-                        dataPackages.First().Version = package.Value.Version.ToString();
-                        break;
-                    case PackageType.None:
-                        continue;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-        }
-
-        public void SetServiceManifestGeneral(
-            ServiceManifest serviceManifest,
-            GlobalVersion version)
-        {
-            serviceManifest.Version = version.Version.ToString();
         }
 
         public void SetServiceEndpoints(
@@ -168,29 +126,13 @@ namespace SFPackager.Services.Manifest
 
                 endpointList
                     .Where(x => x.Name.Equals(endpointConfig.EndpointName))
+                    .ToList()
                     .ForEach(x => endpointList.Remove(x));
 
                 endpointList.Add(endpoint);
             }
 
             serviceManifest.Resources.Endpoints.Endpoint = endpointList;
-        }
-
-        public void SetGeneralInfo(
-            ApplicationManifest appManifest,
-            IReadOnlyDictionary<string, GlobalVersion> versions,
-            string appTypeVersion)
-        {
-            appManifest.ApplicationTypeVersion = appTypeVersion;
-
-            foreach (var serviceImport in appManifest.ServiceManifestImports)
-            {
-                var serviceName = serviceImport.ServiceManifestRef.ServiceManifestName;
-                if (!versions.ContainsKey(serviceName))
-                    continue;
-
-                serviceImport.ServiceManifestRef.ServiceManifestVersion = versions[serviceName].Version.ToString();
-            }
         }
 
         public void CleanAppManifest(ApplicationManifest appManifest)
