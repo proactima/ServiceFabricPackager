@@ -118,11 +118,11 @@ namespace SFPackager.Services
                     {
                         Hash = hash,
                         VersionType = VersionType.ServicePackage,
-                        ParentRef = service.Key,
+                        ParentRef = $"{project.ApplicationTypeName}-{service.Key}",
                         PackageType = subPackage.PackageType
                     };
 
-                    projectHashes.Add($"{service.Key}-{subPackage.Name}", packageVersion);
+                    projectHashes.Add($"{project.ApplicationTypeName}-{service.Key}-{subPackage.Name}", packageVersion);
                 }
 
                 var serviceManifest = _serviceManifestLoader.Load(service.Value.SourceServiceManifestPath);
@@ -139,11 +139,9 @@ namespace SFPackager.Services
                         Hash = HashStream(serviceManifestStream)
                     };
 
-                    projectHashes.Add($"{service.Key}", serviceVersion);
+                    projectHashes.Add($"{project.ApplicationTypeName}-{service.Key}", serviceVersion);
                 }
             }
-
-            var serviceNames = project.Services.Select(x => x.Key).ToList();
 
             var appManifest = _appManifestLoader.Load(project.ApplicationManifestFileFullPath);
             _manifestHandler.CleanAppManifest(appManifest);

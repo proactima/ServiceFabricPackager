@@ -10,5 +10,6 @@ namespace SFPackager.Models
         public PackageType PackageType { get; set; } = PackageType.None;
         public string ParentRef { get; set; } = string.Empty;
         public bool IncludeInPackage { get; set; } = false;
+        public string Name { get; set; } = string.Empty;
     }
 }

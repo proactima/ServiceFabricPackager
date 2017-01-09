@@ -27,7 +27,7 @@ namespace SFPackager.Services
         }
 
         public async Task PackageApplications(
-            Dictionary<string, GlobalVersion> thingsToPackage,
+            VersionMap thingsToPackage,
             Dictionary<string, ServiceFabricApplicationProject> appList)
         {
             if (_baseConfig.PackageOutputPath.Exists && _baseConfig.CleanOutputFolder)
@@ -47,6 +47,7 @@ namespace SFPackager.Services
                 _baseConfig.PackageOutputPath.Create();
 
             var applications = thingsToPackage
+                .PackageVersions
                 .Where(x => x.Value.VersionType == VersionType.Application)
                 .Where(x => x.Value.IncludeInPackage);
 
@@ -59,12 +60,13 @@ namespace SFPackager.Services
                 CopyApplicationManifestToPackage(appData, applicationPackagePath);
 
                 var servicesToCopy = thingsToPackage
+                    .PackageVersions
                     .Where(x => x.Value.VersionType == VersionType.Service)
                     .Where(x => x.Value.IncludeInPackage)
                     .Where(x => x.Value.ParentRef.Equals(source.Key))
                     .ToList();
 
-                await CopyServicesToPackage(servicesToCopy, thingsToPackage, appData, applicationPackagePath).ConfigureAwait(false);
+                await CopyServicesToPackage(servicesToCopy, thingsToPackage.PackageVersions, appData, applicationPackagePath).ConfigureAwait(false);
             }
         }
 
@@ -76,7 +78,8 @@ namespace SFPackager.Services
         {
             foreach (var service in services)
             {
-                var serviceData = appData.Services[service.Key];
+                var serviceKey = service.Key.Split('-').Last();
+                var serviceData = appData.Services[serviceKey];
 
                 CopyServiceManifest(serviceData, basePackagePath);
 

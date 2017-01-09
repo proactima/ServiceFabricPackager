@@ -9,5 +9,8 @@ namespace SFPackager.Models.Xml.Elements
 
         [XmlElement("Extensions")]
         public Extensions Extensions { get; set; }
+
+        [XmlAttribute("HasPersistedState")]
+        public string HasPersistedState { get; set; }
     }
 }

@@ -39,10 +39,11 @@ namespace SFPackager.Services.Manifest
         }
 
         public void Handle(
-            Dictionary<string, GlobalVersion> versions,
+            VersionMap versions,
             Dictionary<string, ServiceFabricApplicationProject> applications)
         {
             var apps = versions
+                .PackageVersions
                 .Where(x => x.Value.VersionType == VersionType.Application)
                 .Where(x => x.Value.IncludeInPackage)
                 .ToList();
@@ -56,29 +57,31 @@ namespace SFPackager.Services.Manifest
                 var appManifest = _appManifestLoader.Load(packagedAppManifest.FullName);
 
                 CleanAppManifest(appManifest);
-                _appManifestHandler.SetGeneralInfo(appManifest, versions, app.Value);
+                _appManifestHandler.SetGeneralInfo(appManifest, versions.PackageVersions, app.Value);
                 _handleEndpointCert.SetEndpointCerts(_packageConfig, appManifest, appData.ApplicationTypeName);
                 _handleEnciphermentCert.SetEnciphermentCerts(_packageConfig, appManifest, appData.ApplicationTypeName);
 
                 _appManifestLoader.Save(appManifest, packagedAppManifest.FullName);
 
                 var includedServices = versions
+                    .PackageVersions
                     .Where(x => x.Value.ParentRef.Equals(app.Key))
                     .Where(x => x.Value.IncludeInPackage)
                     .ToList();
 
                 foreach (var service in includedServices)
                 {
-                    var serviceData = appData.Services[service.Key];
+                    var serviceKey = service.Key.Split('-').Last();
+                    var serviceData = appData.Services[serviceKey];
 
-                    var packagedServiceManifest = Path.Combine(appPackagePath.FullName, service.Key,
+                    var packagedServiceManifest = Path.Combine(appPackagePath.FullName, serviceKey,
                         serviceData.ServiceManifestFile);
                     var serviceManifest = _serviceManifestLoader.Load(packagedServiceManifest);
 
                     _serviceManifestHandler.SetServiceManifestGeneral(serviceManifest, service.Value);
                     SetServiceEndpoints(serviceManifest, appData.ApplicationTypeName, serviceData.ServiceName);
 
-                    _serviceManifestHandler.SetServicePackagesData(serviceManifest, versions, service.Key);
+                    _serviceManifestHandler.SetServicePackagesData(serviceManifest, versions.PackageVersions, service.Key);
 
                     _serviceManifestLoader.Save(serviceManifest, packagedServiceManifest);
                 }

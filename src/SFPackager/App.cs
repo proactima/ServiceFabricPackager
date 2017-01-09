@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using SFPackager.Helpers;
 using SFPackager.Interfaces;
 using SFPackager.Models;
@@ -15,20 +12,19 @@ namespace SFPackager
     public class App
     {
         private readonly AppConfig _baseConfig;
-        private readonly IHandleFiles _blobService;
         private readonly IHandleClusterConnection _fabricRemote;
         private readonly ServiceHashCalculator _hasher;
         private readonly SfLocator _locator;
+        private readonly ConsoleWriter _log;
         private readonly ManifestHandler _manifestReader;
         private readonly Packager _packager;
         private readonly SfProjectHandler _projectHandler;
-        private readonly VersionHandler _versionHandler;
-        private readonly VersionService _versionService;
         private readonly DeployScriptCreator _scriptCreator;
-        private readonly ConsoleWriter _log;
+        private readonly VersionHandler _versionHandler;
+        private readonly VersionMapHandler _versionMapHandler;
+        private readonly VersionService _versionService;
 
         public App(
-            IHandleFiles blobService,
             SfLocator locator,
             SfProjectHandler projectHandler,
             ServiceHashCalculator hasher,
@@ -39,9 +35,9 @@ namespace SFPackager
             AppConfig baseConfig,
             DeployScriptCreator scriptCreator,
             ConsoleWriter log,
-            ManifestHandler manifestReader)
+            ManifestHandler manifestReader,
+            VersionMapHandler versionMapHandler)
         {
-            _blobService = blobService;
             _locator = locator;
             _projectHandler = projectHandler;
             _hasher = hasher;
@@ -53,6 +49,7 @@ namespace SFPackager
             _scriptCreator = scriptCreator;
             _log = log;
             _manifestReader = manifestReader;
+            _versionMapHandler = versionMapHandler;
         }
 
         public async Task RunAsync()
@@ -67,19 +64,19 @@ namespace SFPackager
 
             _log.WriteLine($"New version is: {newVersion}", LogLevel.Info);
 
-            var versions = new Dictionary<string, GlobalVersion>
+            var versions = new VersionMap
             {
-                [Constants.GlobalIdentifier] = new GlobalVersion
+                PackageVersions = new Dictionary<string, GlobalVersion>
                 {
-                    VersionType = VersionType.Global,
-                    Version = currentVersion
+                    [Constants.GlobalIdentifier] = new GlobalVersion
+                    {
+                        VersionType = VersionType.Global,
+                        Version = currentVersion
+                    }
                 }
             };
 
-            _log.WriteLine($"Loading version manifest for {currentVersion}");
-            var currentHashMapResponse = await _blobService
-                .GetFileAsStringAsync(currentVersion.FileName)
-                .ConfigureAwait(false);
+            var currentHashMap = await _versionMapHandler.GetAsync(currentVersion).ConfigureAwait(false);
 
             var parsedApplications = new Dictionary<string, ServiceFabricApplicationProject>();
 
@@ -90,10 +87,10 @@ namespace SFPackager
                 parsedApplications.Add(project.ApplicationTypeName, project);
                 var serviceVersions = await _hasher.Calculate(project, currentVersion).ConfigureAwait(false);
 
-                serviceVersions.ForEach(service => { versions.Add(service.Key, service.Value); });
+                serviceVersions.ForEach(service => { versions.PackageVersions.Add(service.Key, service.Value); });
             }
 
-            if (_baseConfig.ForcePackageAll || !currentHashMapResponse.IsSuccessful)
+            if (_baseConfig.ForcePackageAll || currentHashMap?.PackageVersions == null)
             {
                 _log.WriteLine($"Force package all, setting everything to {newVersion}");
                 _versionService.SetVersionIfNoneIsDeployed(versions, newVersion);
@@ -101,7 +98,7 @@ namespace SFPackager
             else
             {
                 _log.WriteLine($"Setting version of changed packages to {newVersion}");
-                _versionService.SetVersionsIfVersionIsDeployed(currentHashMapResponse, versions, newVersion);
+                _versionService.SetVersionsIfVersionIsDeployed(currentHashMap, versions, newVersion);
             }
 
             _log.WriteLine("Packaging applications", LogLevel.Info);
@@ -112,14 +109,10 @@ namespace SFPackager
             _log.WriteLine("Updating manifests");
             _manifestReader.Handle(versions, parsedApplications);
 
-            _log.WriteLine($"Storing version map for {newVersion}", LogLevel.Info);
-            var versionJson = JsonConvert.SerializeObject(versions);
-            var fileName = versions[Constants.GlobalIdentifier].Version.FileName;
-            await _blobService
-                .SaveFileAsync(fileName, versionJson)
-                .ConfigureAwait(false);
+            await _versionMapHandler.PutAsync(versions).ConfigureAwait(false);
 
             var things = versions
+                .PackageVersions
                 .Where(x => x.Value.VersionType == VersionType.Application)
                 .Where(x => x.Value.IncludeInPackage)
                 .Select(x => x.Key)
