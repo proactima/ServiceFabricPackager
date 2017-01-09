@@ -16,10 +16,11 @@ namespace SFPackager.Services.Manifest
             foreach (var serviceImport in appManifest.ServiceManifestImports)
             {
                 var serviceName = serviceImport.ServiceManifestRef.ServiceManifestName;
-                if (!versions.ContainsKey(serviceName))
+                var properServiceKey = $"{appManifest.ApplicationTypeName}-{serviceName}";
+                if (!versions.ContainsKey(properServiceKey))
                     continue;
 
-                serviceImport.ServiceManifestRef.ServiceManifestVersion = versions[serviceName].Version.ToString();
+                serviceImport.ServiceManifestRef.ServiceManifestVersion = versions[properServiceKey].Version.ToString();
             }
         }
     }

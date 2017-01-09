@@ -19,7 +19,8 @@
     "VersionType": 1,
     "PackageType": 0,
     "ParentRef": "",
-    "IncludeInPackage": false
+    "IncludeInPackage": false,
+    "Name": "App" 
   },
   "Service-Code": {
     "Version": {
@@ -30,7 +31,8 @@
     "VersionType": 3,
     "PackageType": 1,
     "ParentRef": "Service",
-    "IncludeInPackage": false
+    "IncludeInPackage": false,
+    "Name": "Config"
   },
   "Service-Config": {
     "Version": {
@@ -41,7 +43,8 @@
     "VersionType": 3,
     "PackageType": 2,
     "ParentRef": "Service",
-    "IncludeInPackage": false
+    "IncludeInPackage": false,
+    "Name": "Config"
   },
   "Service": {
     "Version": {
@@ -52,6 +55,7 @@
     "VersionType": 2,
     "PackageType": 0,
     "ParentRef": "App",
-    "IncludeInPackage": false
+    "IncludeInPackage": false,
+    "Name": "Service"
   }
 }

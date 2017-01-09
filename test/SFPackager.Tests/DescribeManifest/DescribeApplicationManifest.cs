@@ -65,7 +65,8 @@ namespace SFPackager.Tests.DescribeManifest
                             ServiceManifestVersion = "1-hash"
                         }
                     }
-                }
+                },
+                ApplicationTypeName = "App"
             };
 
             var newVersionNumber = VersionNumber.Create(2, "newhash");
@@ -76,7 +77,7 @@ namespace SFPackager.Tests.DescribeManifest
             };
             var versions = new Dictionary<string, GlobalVersion>
             {
-                ["Service1"] = new GlobalVersion { Version = newVersionNumber}
+                ["App-Service1"] = new GlobalVersion { Version = newVersionNumber}
             };
 
             // w
