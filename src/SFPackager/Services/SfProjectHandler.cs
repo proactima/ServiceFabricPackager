@@ -74,21 +74,31 @@ namespace SFPackager.Services
 
                 var attr = service as XmlAttribute;
                 var projectFile = new FileInfo(Path.Combine(basePath, attr.Value));
-                
+
                 var serviceProject = new ServiceFabricServiceProject
                 {
                     ProjectFolder = projectFile.Directory,
                     ProjectFile = projectFile
                 };
 
-                // Ugly ASP.Net hack for now
-                var buildOutputPath = projectFile.FullName.EndsWith(".xproj")
-                    ? Path.Combine(serviceProject.ProjectFolder.FullName, "bin", _baseConfig.BuildConfiguration, "net451")// $"{projectFolder}bin\\{_baseConfig.BuildConfiguration}\\net451"
-                    : Path.Combine(serviceProject.ProjectFolder.FullName, buildOutputPathSuffix);// $"{projectFolder}{buildOutputPathSuffix}";
+                // TODO Ugly Asp.Net hack thing.
 
-                var projectInfo = _appManifestHandler.ReadXml(serviceProject, buildOutputPath);
+                ServiceFabricServiceProject projectInfo;
+                string buildOutputPath;
 
-                projectInfo.IsAspNetCore = projectFile.FullName.EndsWith(".xproj");
+                var projectFileContents = File.ReadAllText(projectFile.FullName, System.Text.Encoding.UTF8);
+                if (projectFileContents.Contains("<Project Sdk=\"Microsoft.NET.Sdk.Web\">"))
+                {
+                    buildOutputPath = Path.Combine(serviceProject.ProjectFolder.FullName, "bin", _baseConfig.BuildConfiguration, "net451");
+                    projectInfo = _appManifestHandler.ReadXml(serviceProject, buildOutputPath);
+                    projectInfo.IsAspNetCore = true;
+                } else
+                {
+                    buildOutputPath = Path.Combine(serviceProject.ProjectFolder.FullName, buildOutputPathSuffix);
+                    projectInfo = _appManifestHandler.ReadXml(serviceProject, buildOutputPath);
+                    projectInfo.IsAspNetCore = false;
+                }
+
                 projectReferences.Add(projectInfo.ServiceName, projectInfo);
             }
 
