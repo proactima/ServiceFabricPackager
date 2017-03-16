@@ -1,17 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SFPackager", "src\SFPackager\SFPackager.xproj", "{39D7CAFB-75AD-4DB8-8F14-D7161536F0EE}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SFPackager.Tests", "test\SFPackager.Tests\SFPackager.Tests.xproj", "{96E3E0AB-8872-47C1-A0C8-2744F42185D3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EA5F3F35-DB5E-4F7F-A874-54F23A5685BA}"
 	ProjectSection(SolutionItems) = preProject
-		global.json = global.json
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SFPackager", "src\SFPackager\SFPackager.csproj", "{39D7CAFB-75AD-4DB8-8F14-D7161536F0EE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SFPackager.Tests", "test\SFPackager.Tests\SFPackager.Tests.csproj", "{96E3E0AB-8872-47C1-A0C8-2744F42185D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
