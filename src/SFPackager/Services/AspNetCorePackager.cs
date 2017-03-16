@@ -18,7 +18,7 @@ namespace SFPackager.Services
             var processInfo = new ProcessStartInfo
             {
                 Arguments =
-                    $"publish \"{projectFolder}\" --output \"{codeTargetFolder}\" --configuration {configuration} --no-build",
+                    $"publish \"{projectFolder}\" --output \"{codeTargetFolder}\" --configuration {configuration}",
                 FileName = "dotnet.exe",
                 CreateNoWindow = false,
                 UseShellExecute = false,
