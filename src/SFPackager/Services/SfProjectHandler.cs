@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using SFPackager.Models;
+using SFPackager.Models.Xml;
+using SFPackager.Services.Manifest;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-using SFPackager.Helpers;
-using SFPackager.Models;
-using SFPackager.Services.Manifest;
 
 namespace SFPackager.Services
 {
@@ -89,10 +89,16 @@ namespace SFPackager.Services
                 var projectFileContents = File.ReadAllText(projectFile.FullName, System.Text.Encoding.UTF8);
                 if (projectFileContents.Contains("<Project Sdk=\"Microsoft.NET.Sdk.Web\">"))
                 {
-                    buildOutputPath = Path.Combine(serviceProject.ProjectFolder.FullName, "bin", _baseConfig.BuildConfiguration, "net451");
+                    var loader = new ManifestLoader<CoreProjectFile>(false);
+                    var projectModel = loader.Load(projectFile.FullName);
+
+                    var propertyGroup = projectModel.PropertyGroup[0];
+
+                    buildOutputPath = Path.Combine(serviceProject.ProjectFolder.FullName, "bin", _baseConfig.BuildConfiguration, propertyGroup.TargetFramework, propertyGroup.RuntimeIdentifiers[0]);
                     projectInfo = _appManifestHandler.ReadXml(serviceProject, buildOutputPath);
                     projectInfo.IsAspNetCore = true;
-                } else
+                }
+                else
                 {
                     buildOutputPath = Path.Combine(serviceProject.ProjectFolder.FullName, buildOutputPathSuffix);
                     projectInfo = _appManifestHandler.ReadXml(serviceProject, buildOutputPath);

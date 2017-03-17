@@ -1,7 +1,9 @@
 ﻿using SFPackager.Interfaces;
 using SFPackager.Models;
+using SFPackager.Models.Xml;
 using SFPackager.Services.Cluster;
 using SFPackager.Services.FileStorage;
+using SFPackager.Services.Manifest;
 using SimpleInjector;
 
 namespace SFPackager
@@ -24,6 +26,10 @@ namespace SFPackager
 
             container.RegisterSingleton(baseConfig);
             container.RegisterSingleton(packageConfig);
+
+            container.Register(() => new ManifestLoader<ApplicationManifest>());
+            container.Register(() => new ManifestLoader<ServiceManifest>());
+            container.Register(() => new ManifestLoader<CoreProjectFile>(false));
 
             container.Verify();
 
