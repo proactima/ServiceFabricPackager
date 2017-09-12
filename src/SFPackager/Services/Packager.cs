@@ -15,20 +15,23 @@ namespace SFPackager.Services
         private readonly PackageConfig _packageConfig;
         private readonly AppConfig _baseConfig;
         private readonly ConsoleWriter _log;
+        private readonly Hack _hack;
 
         public Packager(AspNetCorePackager aspNetCorePackager, IHandleFiles fileHandler, PackageConfig packageConfig,
-            AppConfig baseConfig, ConsoleWriter log)
+            AppConfig baseConfig, ConsoleWriter log, Hack hack)
         {
             _aspNetCorePackager = aspNetCorePackager;
             _fileHandler = fileHandler;
             _packageConfig = packageConfig;
             _baseConfig = baseConfig;
             _log = log;
+            _hack = hack;
         }
 
         public async Task PackageApplications(
             VersionMap thingsToPackage,
-            Dictionary<string, ServiceFabricApplicationProject> appList)
+            Dictionary<string, ServiceFabricApplicationProject> appList,
+            Dictionary<string, byte[]> hackedFiles)
         {
             if (_baseConfig.PackageOutputPath.Exists && _baseConfig.CleanOutputFolder)
             {
@@ -66,7 +69,7 @@ namespace SFPackager.Services
                     .Where(x => x.Value.ParentRef.Equals(source.Key))
                     .ToList();
 
-                await CopyServicesToPackage(servicesToCopy, thingsToPackage.PackageVersions, appData, applicationPackagePath).ConfigureAwait(false);
+                await CopyServicesToPackage(servicesToCopy, thingsToPackage.PackageVersions, appData, applicationPackagePath, hackedFiles).ConfigureAwait(false);
             }
         }
 
@@ -74,7 +77,8 @@ namespace SFPackager.Services
             IEnumerable<KeyValuePair<string, GlobalVersion>> services,
             Dictionary<string, GlobalVersion> thingsToPackage,
             ServiceFabricApplicationProject appData,
-            DirectoryInfo basePackagePath)
+            DirectoryInfo basePackagePath,
+            Dictionary<string, byte[]> hackedFiles)
         {
             foreach (var service in services)
             {
@@ -92,6 +96,8 @@ namespace SFPackager.Services
                 {
                     if (serviceData.IsAspNetCore && subPackage.Value.PackageType == PackageType.Code)
                     {
+                        _hack.RecreateHackFiles(hackedFiles);
+
                         var package = serviceData.SubPackages
                             .First(x => x.PackageType == PackageType.Code);
                         var servicePackageFolder = Path.Combine(basePackagePath.FullName, serviceData.ServiceName, package.Name);
