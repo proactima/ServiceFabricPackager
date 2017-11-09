@@ -150,13 +150,29 @@ namespace SFPackager.Services
 
             if (service.Value.PackageType == PackageType.Code)
             {
-                directory = new DirectoryInfo(Path.Combine(serviceProject.ProjectFolder.FullName, appData.BuildOutputPathSuffix));
-                files = directory
-                    .GetFiles("*", SearchOption.AllDirectories)
-                    .Where(x => _packageConfig.HashIncludeExtensions.Any(include => x.FullName.ToLowerInvariant().EndsWith(include.ToLowerInvariant())))
-                    .Select(x => x.FullName)
-                    .OrderBy(x => x)
-                    .Select(x => new FileInfo(x));
+                if (!serviceProject.IsGuestExecutable)
+                {
+                    directory = new DirectoryInfo(Path.Combine(serviceProject.ProjectFolder.FullName,
+                        appData.BuildOutputPathSuffix));
+
+                    files = directory
+                        .GetFiles("*", SearchOption.AllDirectories)
+                        .Where(x => _packageConfig.HashIncludeExtensions.Any(include =>
+                            x.FullName.ToLowerInvariant().EndsWith(include.ToLowerInvariant())))
+                        .Select(x => x.FullName)
+                        .OrderBy(x => x)
+                        .Select(x => new FileInfo(x));
+                }
+                else
+                {
+                    directory = new DirectoryInfo(Path.Combine(serviceProject.ProjectFolder.FullName, "Code"));
+
+                    files = directory
+                        .GetFiles("*", SearchOption.AllDirectories)
+                        .Select(x => x.FullName)
+                        .OrderBy(x => x)
+                        .Select(x => new FileInfo(x));
+                }
             }
             else
             {

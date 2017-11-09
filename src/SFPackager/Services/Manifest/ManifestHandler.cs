@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SFPackager.Models;
@@ -60,6 +61,28 @@ namespace SFPackager.Services.Manifest
                 _appManifestHandler.SetGeneralInfo(appManifest, versions.PackageVersions, app.Value);
                 _handleEndpointCert.SetEndpointCerts(_packageConfig, appManifest, appData.ApplicationTypeName);
                 _handleEnciphermentCert.SetEnciphermentCerts(_packageConfig, appManifest, appData.ApplicationTypeName);
+
+                // TODO: Add guest executables
+                var guests = _packageConfig.GuestExecutables.Where(x =>
+                    x.ApplicationTypeName.Equals(app.Key, StringComparison.CurrentCultureIgnoreCase));
+
+                foreach (var guest in guests)
+                {
+                    var properServiceKey = $"{appManifest.ApplicationTypeName}-{guest.PackageName}";
+                    var serviceVersion = versions.PackageVersions[properServiceKey].Version.ToString();
+
+                    var serviceManifestRef = new ServiceManifestRef
+                    {
+                        ServiceManifestName = guest.PackageName,
+                        ServiceManifestVersion = serviceVersion
+                    };
+                    var serviceImport = new ServiceManifestImport
+                    {
+                        ServiceManifestRef = serviceManifestRef
+                    };
+
+                    appManifest.ServiceManifestImports.Add(serviceImport);
+                }
 
                 _appManifestLoader.Save(appManifest, packagedAppManifest.FullName);
 
