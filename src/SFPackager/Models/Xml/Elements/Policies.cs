@@ -10,5 +10,8 @@ namespace SFPackager.Models.Xml.Elements
 
         [XmlElement("SecurityAccessPolicies")]
         public SecurityAccessPolicies SecurityAccessPolicies { get; set; }
+
+        [XmlElement("RunAsPolicy")]
+        public List<RunAsPolicy> RunAsPolicy { get; set; }
     }
 }
