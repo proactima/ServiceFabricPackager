@@ -19,5 +19,6 @@ namespace SFPackager.Models
         public CommandOption CleanOutputFolder { get; set; }
         public CommandOption PackageOutputPath { get; set; }
         public CommandOption VerboseOutput { get; set; }
+        public CommandOption DotNetPublishExtraArgs { get; set; }
     }
 }

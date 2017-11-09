@@ -12,13 +12,13 @@ namespace SFPackager.Services
             _log = log;
         }
 
-        public int Package(string projectFolder, string codeTargetFolder, string configuration)
+        public int Package(string projectFolder, string codeTargetFolder, string configuration, string extraOptions)
         {
             projectFolder = projectFolder.TrimEnd('\\');
             var processInfo = new ProcessStartInfo
             {
                 Arguments =
-                    $"publish \"{projectFolder}\" --output \"{codeTargetFolder}\" --configuration {configuration}",
+                    $"publish \"{projectFolder}\" --output \"{codeTargetFolder}\" --configuration {configuration} {extraOptions}",
                 FileName = "dotnet.exe",
                 CreateNoWindow = false,
                 UseShellExecute = false,

@@ -21,6 +21,7 @@ namespace SFPackager.Models
         public DirectoryInfo PackageOutputPath { get; set; }
         public bool VerboseOutput { get; set; }
         public DirectoryInfo SelfPath { get; set; }
+        public string DotNetPublishExtraArgs { get; set; }
 
         internal static AppConfig ValidateAndCreate(AppConfigRaw rawConfig)
         {
@@ -60,6 +61,7 @@ namespace SFPackager.Models
                 PackageOutputPath = GetPackageOutputPath(rawConfig),
                 VerboseOutput = rawConfig.VerboseOutput.HasValue(),
                 SelfPath = new DirectoryInfo(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location)),
+                DotNetPublishExtraArgs = rawConfig.DotNetPublishExtraArgs.Value(),
             };
             
             config.SourcePath = config.SolutionFile.Directory;

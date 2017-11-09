@@ -101,7 +101,7 @@ namespace SFPackager.Services
                         var package = serviceData.SubPackages
                             .First(x => x.PackageType == PackageType.Code);
                         var servicePackageFolder = Path.Combine(basePackagePath.FullName, serviceData.ServiceName, package.Name);
-                        var resultCode = _aspNetCorePackager.Package(serviceData.ProjectFolder.FullName, servicePackageFolder, _baseConfig.BuildConfiguration);
+                        var resultCode = _aspNetCorePackager.Package(serviceData.ProjectFolder.FullName, servicePackageFolder, _baseConfig.BuildConfiguration, _baseConfig.DotNetPublishExtraArgs);
                         if (resultCode != 0)
                         {
                             throw new InvalidOperationException("Something went wrong packaging ASP.Net Core stuff");
