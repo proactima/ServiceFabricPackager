@@ -9,5 +9,8 @@ namespace SFPackager.Models.Xml.Elements
 
         [XmlAttribute("AccountType")]
         public string AccountType { get; set; }
+
+        [XmlElement("MemberOf")]
+        public MemberOf MemberOf { get; set; }
     }
 }
