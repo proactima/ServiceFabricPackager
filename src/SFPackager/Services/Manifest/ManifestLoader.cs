@@ -7,10 +7,13 @@ namespace SFPackager.Services.Manifest
     {
         private readonly XmlSerializer _serializer;
 
-        public ManifestLoader()
+        public ManifestLoader(bool useNamespace = true)
         {
-            var namespaces = new XmlSerializerNamespaces();
-            namespaces.Add("x", "http://schemas.microsoft.com/2011/01/fabric");
+            if(useNamespace)
+            {
+                var namespaces = new XmlSerializerNamespaces();
+                namespaces.Add("x", "http://schemas.microsoft.com/2011/01/fabric");
+            }
             _serializer = new XmlSerializer(typeof(T));
         }
 

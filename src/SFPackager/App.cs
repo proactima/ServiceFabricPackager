@@ -23,6 +23,7 @@ namespace SFPackager
         private readonly VersionHandler _versionHandler;
         private readonly VersionMapHandler _versionMapHandler;
         private readonly VersionService _versionService;
+        private readonly Hack _hack;
 
         public App(
             SfLocator locator,
@@ -36,7 +37,8 @@ namespace SFPackager
             DeployScriptCreator scriptCreator,
             ConsoleWriter log,
             ManifestHandler manifestReader,
-            VersionMapHandler versionMapHandler)
+            VersionMapHandler versionMapHandler,
+            Hack hack)
         {
             _locator = locator;
             _projectHandler = projectHandler;
@@ -50,6 +52,7 @@ namespace SFPackager
             _log = log;
             _manifestReader = manifestReader;
             _versionMapHandler = versionMapHandler;
+            _hack = hack;
         }
 
         public async Task RunAsync()
@@ -63,6 +66,8 @@ namespace SFPackager
             var newVersion = currentVersion.Increment(_baseConfig.UniqueVersionIdentifier);
 
             _log.WriteLine($"New version is: {newVersion}", LogLevel.Info);
+
+            var hackData = _hack.FindHackableThings(sfApplications.First());
 
             var versions = new VersionMap
             {
@@ -103,7 +108,7 @@ namespace SFPackager
 
             _log.WriteLine("Packaging applications", LogLevel.Info);
             await _packager
-                .PackageApplications(versions, parsedApplications)
+                .PackageApplications(versions, parsedApplications, hackData)
                 .ConfigureAwait(false);
 
             _log.WriteLine("Updating manifests");

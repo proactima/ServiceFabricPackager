@@ -33,6 +33,7 @@ namespace SFPackager
                 CleanOutputFolder = app.Option("-d|--cleanOutput", "Clean packaging folder before packaging", CommandOptionType.NoValue),
                 PackageOutputPath = app.Option("-o|--packageOutput", "Path to package to. Defaults to SOURCEPATH\\sfpackaging", CommandOptionType.SingleValue),
                 VerboseOutput = app.Option("-v|--verbose", "Verbose output", CommandOptionType.NoValue),
+                DotNetPublishExtraArgs = app.Option("-t|--extraArgs", "Extra agrs for dotnet publish", CommandOptionType.SingleValue)
             };
             
             var errCode = app.Execute(args);

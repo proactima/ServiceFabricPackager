@@ -26,7 +26,7 @@ namespace SFPackager.Services.Manifest
 
             foreach (var package in subPackages)
             {
-                var packageName = package.Key.Split('-')[1];
+                var packageName = package.Key.Split('-')[2];
 
                 switch (package.Value.PackageType)
                 {
