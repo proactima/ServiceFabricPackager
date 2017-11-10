@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using SFPackager.Interfaces;
 using SFPackager.Models;
 using SFPackager.Models.Xml;
+using SFPackager.Models.Xml.Elements;
 using SFPackager.Services.Manifest;
 
 namespace SFPackager.Services
@@ -59,19 +60,36 @@ namespace SFPackager.Services
 
                     if (subPackage.PackageType == PackageType.Code)
                     {
-                        files = directory
-                            .GetFiles("*", SearchOption.AllDirectories)
-                            .Where(
-                                x =>
-                                    _packageConfig.HashIncludeExtensions.Any(
-                                        include =>
-                                                x.FullName.EndsWith(include, StringComparison.CurrentCultureIgnoreCase)))
-                            .Where(
-                                x =>
-                                    _packageConfig.HashSpecificExludes.All(
-                                        exclude => !x.FullName.ToLowerInvariant().Contains(exclude.ToLowerInvariant())))
-                            .Select(x => x.FullName)
-                            .OrderBy(x => x);
+                        if (!service.Value.IsGuestExecutable)
+                        {
+                            files = directory
+                                .GetFiles("*", SearchOption.AllDirectories)
+                                .Where(
+                                    x =>
+                                        _packageConfig.HashIncludeExtensions.Any(
+                                            include =>
+                                                x.FullName.EndsWith(include,
+                                                    StringComparison.CurrentCultureIgnoreCase)))
+                                .Where(
+                                    x =>
+                                        _packageConfig.HashSpecificExludes.All(
+                                            exclude => !x.FullName.ToLowerInvariant()
+                                                .Contains(exclude.ToLowerInvariant())))
+                                .Select(x => x.FullName)
+                                .OrderBy(x => x);
+                        }
+                        else
+                        {
+                            files = directory
+                                .GetFiles("*", SearchOption.AllDirectories)
+                                .Where(
+                                    x =>
+                                        _packageConfig.HashSpecificExludes.All(
+                                            exclude => !x.FullName.ToLowerInvariant()
+                                                .Contains(exclude.ToLowerInvariant())))
+                                .Select(x => x.FullName)
+                                .OrderBy(x => x);
+                        }
                     }
                     else
                     {
@@ -147,6 +165,58 @@ namespace SFPackager.Services
             _manifestHandler.CleanAppManifest(appManifest);
             _handleEndpointCert.SetEndpointCerts(_packageConfig, appManifest, project.ApplicationTypeName);
             _handleEnciphermentCert.SetEnciphermentCerts(_packageConfig, appManifest, project.ApplicationTypeName);
+
+            var guests = _packageConfig.GuestExecutables.Where(x =>
+                x.ApplicationTypeName.Equals(project.ApplicationTypeName, StringComparison.CurrentCultureIgnoreCase));
+            
+            foreach (var guest in guests)
+            {
+                var policies = new Policies();
+
+                if (guest.GuestRunAs != null)
+                {
+                    var runAs = new RunAsPolicy
+                    {
+                        UserRef = guest.GuestRunAs.UserName,
+                        CodePackageRef = "Code"
+                    };
+
+                    var runAsPolicies = new List<RunAsPolicy> {runAs};
+                    policies.RunAsPolicy = runAsPolicies;
+
+                    if(appManifest.Principals == null)
+                        appManifest.Principals = new Principals();
+                    if(appManifest.Principals.Users == null)
+                        appManifest.Principals.Users = new Users();
+                    if(appManifest.Principals.Users.User == null)
+                        appManifest.Principals.Users.User = new List<User>();
+
+                    if (!appManifest.Principals.Users.User.Any(x =>
+                        x.Name.Equals(guest.GuestRunAs.UserName, StringComparison.CurrentCultureIgnoreCase)))
+                    {
+                        var user = new User
+                        {
+                            Name = guest.GuestRunAs.UserName,
+                            AccountType = guest.GuestRunAs.AccountType
+                        };
+                        appManifest.Principals.Users.User.Add(user);
+                    }
+                }
+
+                var serviceManifestRef = new ServiceManifestRef
+                {
+                    ServiceManifestName = guest.PackageName,
+                    ServiceManifestVersion = "1.0.0"
+                };
+                var serviceImport = new ServiceManifestImport
+                {
+                    ServiceManifestRef = serviceManifestRef,
+                    ConfigOverrides = new ConfigOverrides(),
+                    Policies = policies
+                };
+
+                appManifest.ServiceManifestImports.Add(serviceImport);
+            }
 
             using (var appManifestStream = new MemoryStream())
             {

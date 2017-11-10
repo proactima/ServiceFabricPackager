@@ -9,5 +9,8 @@ namespace SFPackager.Models.Xml.Elements
 
         [XmlAttribute("HasPersistedState")]
         public string HasPersistedState { get; set; }
+
+        [XmlAttribute("UseImplicitHost")]
+        public string UseImplicitHost { get; set; }
     }
 }

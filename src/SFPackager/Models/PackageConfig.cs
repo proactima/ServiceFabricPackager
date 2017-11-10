@@ -11,6 +11,20 @@ namespace SFPackager.Models
         public List<string> HashIncludeExtensions { get; set; }
         public List<string> HashSpecificExludes { get; set; }
         public List<Encipherment> Encipherment { get; set; }
+        public List<GuestExecutable> GuestExecutables { get; set; }
+    }
+
+    public class GuestExecutable
+    {
+        public string PackageName { get; set; }
+        public string ApplicationTypeName { get; set; }
+        public GuestRunAs GuestRunAs { get; set; }
+    }
+
+    public class GuestRunAs
+    {
+        public string UserName { get; set; }
+        public string AccountType { get; set; }
     }
 
     public class Encipherment

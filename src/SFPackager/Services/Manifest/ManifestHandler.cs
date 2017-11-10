@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SFPackager.Models;
@@ -60,6 +61,61 @@ namespace SFPackager.Services.Manifest
                 _appManifestHandler.SetGeneralInfo(appManifest, versions.PackageVersions, app.Value);
                 _handleEndpointCert.SetEndpointCerts(_packageConfig, appManifest, appData.ApplicationTypeName);
                 _handleEnciphermentCert.SetEnciphermentCerts(_packageConfig, appManifest, appData.ApplicationTypeName);
+
+                var guests = _packageConfig.GuestExecutables.Where(x =>
+                    x.ApplicationTypeName.Equals(app.Key, StringComparison.CurrentCultureIgnoreCase));
+
+                foreach (var guest in guests)
+                {
+                    var policies = new Policies();
+
+                    if (guest.GuestRunAs != null)
+                    {
+                        var runAs = new RunAsPolicy
+                        {
+                            UserRef = guest.GuestRunAs.UserName,
+                            CodePackageRef = "Code"
+                        };
+
+                        var runAsPolicies = new List<RunAsPolicy> { runAs };
+                        policies.RunAsPolicy = runAsPolicies;
+
+                        if (appManifest.Principals == null)
+                            appManifest.Principals = new Principals();
+                        if (appManifest.Principals.Users == null)
+                            appManifest.Principals.Users = new Users();
+                        if (appManifest.Principals.Users.User == null)
+                            appManifest.Principals.Users.User = new List<User>();
+
+                        if (!appManifest.Principals.Users.User.Any(x =>
+                            x.Name.Equals(guest.GuestRunAs.UserName, StringComparison.CurrentCultureIgnoreCase)))
+                        {
+                            var user = new User
+                            {
+                                Name = guest.GuestRunAs.UserName,
+                                AccountType = guest.GuestRunAs.AccountType
+                            };
+                            appManifest.Principals.Users.User.Add(user);
+                        }
+                    }
+
+                    var properServiceKey = $"{appManifest.ApplicationTypeName}-{guest.PackageName}";
+                    var serviceVersion = versions.PackageVersions[properServiceKey].Version.ToString();
+
+                    var serviceManifestRef = new ServiceManifestRef
+                    {
+                        ServiceManifestName = guest.PackageName,
+                        ServiceManifestVersion = serviceVersion
+                    };
+                    var serviceImport = new ServiceManifestImport
+                    {
+                        ServiceManifestRef = serviceManifestRef,
+                        ConfigOverrides = new ConfigOverrides(),
+                        Policies = policies
+                    };
+
+                    appManifest.ServiceManifestImports.Add(serviceImport);
+                }
 
                 _appManifestLoader.Save(appManifest, packagedAppManifest.FullName);
 

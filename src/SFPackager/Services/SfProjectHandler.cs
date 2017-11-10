@@ -1,8 +1,10 @@
-﻿using SFPackager.Models;
+﻿using System;
+using SFPackager.Models;
 using SFPackager.Models.Xml;
 using SFPackager.Services.Manifest;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 
 namespace SFPackager.Services
@@ -11,11 +13,13 @@ namespace SFPackager.Services
     {
         private readonly ManifestParser _appManifestHandler;
         private readonly AppConfig _baseConfig;
+        private readonly PackageConfig _packageConfig;
 
-        public SfProjectHandler(ManifestParser appManifestHandler, AppConfig baseConfig)
+        public SfProjectHandler(ManifestParser appManifestHandler, AppConfig baseConfig, PackageConfig packageConfig)
         {
             _appManifestHandler = appManifestHandler;
             _baseConfig = baseConfig;
+            _packageConfig = packageConfig;
         }
 
         public ServiceFabricApplicationProject Parse(
@@ -37,8 +41,40 @@ namespace SFPackager.Services
 
                 sfProject.Services = ExtractProjectReferences(basePath, sfProject.BuildOutputPathSuffix, document, manager);
 
+                var guestExecutables = DiscoverAndReadGuestExecutables(sfProject);
+                foreach (var guest in guestExecutables)
+                {
+                    if(!sfProject.Services.ContainsKey(guest.Key))
+                        sfProject.Services.Add(guest.Key, guest.Value);
+                }
+
                 return sfProject;
             }
+        }
+
+        private Dictionary<string, ServiceFabricServiceProject> DiscoverAndReadGuestExecutables(ServiceFabricApplicationProject sfProject)
+        {
+            var result = new Dictionary<string, ServiceFabricServiceProject>();
+
+            var guests = _packageConfig.GuestExecutables.Where(x => x.ApplicationTypeName.Equals(sfProject.ApplicationTypeName, StringComparison.CurrentCultureIgnoreCase));
+
+            foreach (var guest in guests)
+            {
+                var serviceProject = new ServiceFabricServiceProject
+                {
+                    IsAspNetCore = false,
+                    ProjectFolder = new DirectoryInfo(Path.Combine(_baseConfig.SourcePath.FullName, guest.PackageName)),
+                    ProjectFile = null,
+                    PackageRoot = new DirectoryInfo(Path.Combine(_baseConfig.SourcePath.FullName, guest.PackageName)),
+                };
+
+                var finalProject = _appManifestHandler.ReadXml(serviceProject, Path.Combine(serviceProject.ProjectFolder.FullName, "Code"));
+                finalProject.IsGuestExecutable = true;
+
+                result.Add(guest.PackageName, finalProject);
+            }
+
+            return result;
         }
 
         internal static string ExtractApplicationManifest(
