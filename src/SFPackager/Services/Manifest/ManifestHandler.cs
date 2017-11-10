@@ -62,12 +62,43 @@ namespace SFPackager.Services.Manifest
                 _handleEndpointCert.SetEndpointCerts(_packageConfig, appManifest, appData.ApplicationTypeName);
                 _handleEnciphermentCert.SetEnciphermentCerts(_packageConfig, appManifest, appData.ApplicationTypeName);
 
-                // TODO: Add guest executables
                 var guests = _packageConfig.GuestExecutables.Where(x =>
                     x.ApplicationTypeName.Equals(app.Key, StringComparison.CurrentCultureIgnoreCase));
 
                 foreach (var guest in guests)
                 {
+                    var policies = new Policies();
+
+                    if (guest.GuestRunAs != null)
+                    {
+                        var runAs = new RunAsPolicy
+                        {
+                            UserRef = guest.GuestRunAs.UserName,
+                            CodePackageRef = "Code"
+                        };
+
+                        var runAsPolicies = new List<RunAsPolicy> { runAs };
+                        policies.RunAsPolicy = runAsPolicies;
+
+                        if (appManifest.Principals == null)
+                            appManifest.Principals = new Principals();
+                        if (appManifest.Principals.Users == null)
+                            appManifest.Principals.Users = new Users();
+                        if (appManifest.Principals.Users.User == null)
+                            appManifest.Principals.Users.User = new List<User>();
+
+                        if (!appManifest.Principals.Users.User.Any(x =>
+                            x.Name.Equals(guest.GuestRunAs.UserName, StringComparison.CurrentCultureIgnoreCase)))
+                        {
+                            var user = new User
+                            {
+                                Name = guest.GuestRunAs.UserName,
+                                AccountType = guest.GuestRunAs.AccountType
+                            };
+                            appManifest.Principals.Users.User.Add(user);
+                        }
+                    }
+
                     var properServiceKey = $"{appManifest.ApplicationTypeName}-{guest.PackageName}";
                     var serviceVersion = versions.PackageVersions[properServiceKey].Version.ToString();
 
@@ -78,7 +109,9 @@ namespace SFPackager.Services.Manifest
                     };
                     var serviceImport = new ServiceManifestImport
                     {
-                        ServiceManifestRef = serviceManifestRef
+                        ServiceManifestRef = serviceManifestRef,
+                        ConfigOverrides = new ConfigOverrides(),
+                        Policies = policies
                     };
 
                     appManifest.ServiceManifestImports.Add(serviceImport);

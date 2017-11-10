@@ -18,6 +18,13 @@ namespace SFPackager.Models
     {
         public string PackageName { get; set; }
         public string ApplicationTypeName { get; set; }
+        public GuestRunAs GuestRunAs { get; set; }
+    }
+
+    public class GuestRunAs
+    {
+        public string UserName { get; set; }
+        public string AccountType { get; set; }
     }
 
     public class Encipherment
